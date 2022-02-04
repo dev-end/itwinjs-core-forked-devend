@@ -2,7 +2,7 @@
 * Copyright (c) Bentley Systems, Incorporated. All rights reserved.
 * See LICENSE.md in the project root for license terms and full copyright notice.
 *--------------------------------------------------------------------------------------------*/
-import { FeatureAppearance, Frustum, RenderMode } from "@itwin/core-common";
+import { ClipStyle, ColorDef, CutStyle, FeatureAppearance, Frustum, RenderMode, RgbColor } from "@itwin/core-common";
 import { AccuDrawHintBuilder, FeatureOverrideProvider, FeatureSymbology, GraphicBranch, IModelApp, RenderClipVolume, SceneContext, ScreenViewport, TiledGraphicsProvider, TileTreeReference, Viewport } from "@itwin/core-frontend";
 import { ClipPlane, ClipPrimitive, ClipVector, ConvexClipPlaneSet, Point3d, Transform, Vector3d } from "@itwin/core-geometry";
 
@@ -10,11 +10,9 @@ export enum ComparisonType {
   Wireframe,
   // RealityData,
   AppearanceOverrides,
-  AlwaysDrawn
+  AlwaysDrawn,
+  ClipStyles,
 }
-
-// const compareDebugClipStyle = ClipStyle.create(true, CutStyle.defaults, RgbColor.fromColorDef(ColorDef.blue), RgbColor.fromColorDef(ColorDef.green));
-// const elements = new Set("0x2000000acf7");
 
 class FeatureComparison implements FeatureOverrideProvider {
   public static dimFeatures = false;
@@ -137,6 +135,9 @@ export default class SwipingComparisonApi {
         break;
       case ComparisonType.AlwaysDrawn:
         rtnProvider = new AlwaysDrawnComparisonProvider(negatedClip, viewport);
+        break;
+      case ComparisonType.ClipStyles:
+        rtnProvider = new ClipStyleComparisonProvider(negatedClip, viewport);
         break;
     }
     return rtnProvider;
@@ -307,6 +308,28 @@ class FeatureOverrideComparisonProvider extends SampleTiledGraphicsProvider {
   }
   protected resetOldView(_vp: Viewport): void {
     FeatureComparison.dimFeatures = true;
+  }
+}
+
+/** Should render nothing on the main side, but render all models on the comparison side. */
+class ClipStyleComparisonProvider extends SampleTiledGraphicsProvider {
+  public comparisonType = ComparisonType.ClipStyles;
+  public readonly compare1ClipStyle = ClipStyle.create(false, CutStyle.defaults, RgbColor.fromColorDef(ColorDef.blue), RgbColor.fromColorDef(ColorDef.green));
+  public readonly compare2ClipStyle = ClipStyle.create(true, CutStyle.defaults, RgbColor.fromColorDef(ColorDef.red), RgbColor.fromColorDef(ColorDef.black));
+
+  constructor(clip: ClipVector, vp: Viewport) {
+    super(clip, vp);
+
+    // even if clip volume is not enabled, the graphics branch created by the provider still obeys it.
+    vp.viewFlags = vp.viewFlags.with("clipVolume", true);
+    vp.clipStyle = this.compare1ClipStyle;
+  }
+
+  protected prepareNewBranch(vp: Viewport): void {
+    vp.clipStyle = this.compare2ClipStyle;
+  }
+  protected resetOldView(vp: Viewport): void {
+    vp.clipStyle = this.compare1ClipStyle;
   }
 }
 
