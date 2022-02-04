@@ -4,7 +4,7 @@
 *--------------------------------------------------------------------------------------------*/
 import UIKit
 
-import ITwinMobile
+import IModelJsNative
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {

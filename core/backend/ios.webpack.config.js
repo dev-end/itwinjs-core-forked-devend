@@ -9,11 +9,11 @@ const glob = require("glob");
 module.exports = {
   mode: "development",
   entry: [
-    ...glob.sync(path.resolve(__dirname, "lib/**/*.test.js")),
-    path.resolve(__dirname, "ios/scripts/runMocha.js")
+    ...glob.sync(path.resolve(__dirname, "lib/**/*.test.js"))
+    // path.resolve(__dirname, "ios/scripts/runMocha.js")
   ],
   output: {
-    path: path.resolve(__dirname, "lib/dist"),
+    path: path.resolve(__dirname, "lib/ios"),
     filename: "main.js",
     devtoolModuleFilenameTemplate: "file:///[absolute-resource-path]",
     globalObject: "this",
@@ -47,5 +47,8 @@ module.exports = {
   node: {
     __filename: false,
     __dirname: false
+  },
+  externals: {
+    "@bentley/imodeljs-native": "commonjs @bentley/imodeljs-native",
   }
 }

@@ -6,7 +6,7 @@
 import UIKit
 import WebKit
 
-import ITwinMobile
+import IModelJsNative
 
 class ViewController: UIViewController, WKUIDelegate, WKNavigationDelegate, UIDocumentPickerDelegate {
     private var webView : WKWebView? = nil
