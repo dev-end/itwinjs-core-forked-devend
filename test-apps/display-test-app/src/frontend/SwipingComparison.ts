@@ -221,8 +221,6 @@ abstract class SampleTiledGraphicsProvider implements TiledGraphicsProvider {
     // Replace the clipping plane with a flipped one.
     // vp.view.setViewClip(this.clipVolume?.clipVector);
 
-    // vp.clipStyle = compareDebugClipStyle;
-
     this.prepareNewBranch(vp);
 
     const context: SceneContext = new SceneContext(vp);
@@ -246,10 +244,6 @@ abstract class SampleTiledGraphicsProvider implements TiledGraphicsProvider {
 
     // Return the old clip to the view.
     // vp.view.setViewClip(clip);
-
-    FeatureComparison.dimFeatures = true;
-    // vp.setAlwaysDrawn(new Set(), true);
-    // vp.clipStyle = ClipStyle.defaults;
 
     this.resetOldView(vp);
   }
@@ -352,8 +346,6 @@ class AlwaysDrawnComparisonProvider extends SampleTiledGraphicsProvider {
     vp.setAlwaysDrawn(new Set(), true);
   }
 }
-
-// viewport.setAlwaysDrawn(new Set(), true);
 
 // class ComparisonRealityModelProvider extends SampleTiledGraphicsProvider {
 //   public comparisonType = ComparisonType.RealityData;
