@@ -8,6 +8,7 @@ import { ClipPlane, ClipPrimitive, ClipVector, ConvexClipPlaneSet, Point3d, Vect
 import { ModelClipGroup, ModelClipGroups } from "@itwin/core-common";
 import { AccuDrawHintBuilder, IModelApp, ScreenViewport, ViewClipDecorationProvider, Viewport } from "@itwin/core-frontend";
 import { ToolBarDropDown } from "./ToolBar";
+import SwipingComparisonApi, { ComparisonType } from "./SwipingComparison";
 
 function setFocusToHome(): void {
   const element = document.activeElement as HTMLElement;
@@ -20,6 +21,7 @@ function setFocusToHome(): void {
 export class SectionsPanel extends ToolBarDropDown {
   private readonly _vp: ScreenViewport;
   private readonly _element: HTMLElement;
+  private _comparisonTool: ComparisonTool;
   private _toolName = "ViewClip.ByPlane";
 
   public constructor(vp: ScreenViewport, parent: HTMLElement) {
@@ -28,6 +30,8 @@ export class SectionsPanel extends ToolBarDropDown {
     this._element = IModelApp.makeHTMLElement("div", { className: "toolMenu", parent });
     this._element.style.cssFloat = "left";
     this._element.style.display = "block";
+
+    this._comparisonTool = new ViewDiffTool();
 
     createComboBox({
       parent: this._element,
@@ -72,13 +76,15 @@ export class SectionsPanel extends ToolBarDropDown {
       value: "Add Panel",
       handler: () => {
         // Add Clip Model Group UI
+        const initialLeft = vp.getClientRect().width / 2;
         const props: DividingLineProps = {
-          sideL: vp.getClientRect().width / 2,
+          sideL: initialLeft,
           bounds: vp.getClientRect(),
           buffer: 10,
           parent: vp.canvas.parentElement!,
-          onDragged: (left, _right) => ModelClipTool.applyModelClipping(vp, new Point3d(left, (vp.getClientRect().height / 2), 0), negate),
+          onDragged: (left, _right) => this._comparisonTool.applyComparison(vp, new Point3d(left, (vp.getClientRect().height / 2), 0), negate),
         };
+        this._comparisonTool.applyComparison(vp, new Point3d(initialLeft, (vp.getClientRect().height / 2), 0), negate);
         const divider = new TwoPanelDivider(props);
         divider.dividerElem.style.zIndex = "10";
       },
@@ -100,10 +106,20 @@ export class SectionsPanel extends ToolBarDropDown {
   public get isOpen(): boolean { return "block" === this._element.style.display; }
 }
 
-class ModelClipTool {
-  private static _leftModels: string[] = [];
-  private static _rightModels: string[] = [];
-  public static applyModelClipping(vp: Viewport, clipPoint: Point3d, negate: boolean): void {
+export abstract class ComparisonTool {
+  abstract applyComparison(vp: Viewport, clipPoint: Point3d, negate: boolean): void;
+}
+
+class ViewDiffTool  extends ComparisonTool {
+  public applyComparison(vp: Viewport, clipPoint: Point3d, negate: boolean): void {
+    SwipingComparisonApi.compare(clipPoint, vp, ComparisonType.AppearanceOverrides, negate);
+  }
+}
+
+class ModelClipTool extends ComparisonTool {
+  private _leftModels: string[] = [];
+  private _rightModels: string[] = [];
+  public applyComparison(vp: Viewport, clipPoint: Point3d, negate: boolean): void {
     const view = vp.view;
     if (!view || !view.isSpatialView())
       return;
@@ -204,6 +220,7 @@ export class TwoPanelDivider {
 
   private _mouseDownDraggable = (e: MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     document.addEventListener("mousemove", this._mouseMoveDraggable);
     document.addEventListener("mouseup", this._mouseUpDraggable);
     this._oldPosition = e.clientX;
