@@ -23,7 +23,7 @@
     "test": "mocha",
     "ios:webpack:tests": "webpack --config ios.webpack.config.js",
     "ios:copy:project": "cpx \"./ios/test-app-template/**/*\" ./lib/ios",
-    "ios:copy:assets": "cpx \"./src/test/assets/**/*\" ./lib/ios/assets && cpx \"./src/assets/**/*\" ./lib/ios/assets",
+    "ios:copy:assets": "cpx \"./src/assets/**/*\" ./lib/ios/assets/assets && cpx \"./src/test/assets/**/*\" ./lib/ios/assets/assets",
     "build:ios": "npm run -s build && npm run -s ios:webpack:tests && npm run -s ios:copy:project && npm run -s ios:copy:assets"
   },
   "repository": {
@@ -56,6 +56,7 @@
     "@itwin/core-bentley": "workspace:*",
     "@itwin/core-common": "workspace:*",
     "@itwin/core-geometry": "workspace:*",
+    "@itwin/core-webpack-tools": "workspace:*",
     "@itwin/ecschema-metadata": "workspace:*",
     "@itwin/eslint-plugin": "workspace:*",
     "@types/chai": "^4.1.4",

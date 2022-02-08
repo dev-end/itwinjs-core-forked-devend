@@ -6,14 +6,17 @@
 const path = require("path");
 const glob = require("glob");
 
+const { CopyExternalsPlugin } = require("@itwin/core-webpack-tools")
+
 module.exports = {
   mode: "development",
   entry: [
-    ...glob.sync(path.resolve(__dirname, "lib/**/*.test.js"))
-    // path.resolve(__dirname, "ios/scripts/runMocha.js")
+    path.resolve(__dirname, "ios/scripts/configureMocha.js"),
+    ...glob.sync(path.resolve(__dirname, "lib/**/*.test.js")),
+    path.resolve(__dirname, "ios/scripts/runMocha.js")
   ],
   output: {
-    path: path.resolve(__dirname, "lib/ios"),
+    path: path.resolve(__dirname, "lib/ios/assets"),
     filename: "main.js",
     devtoolModuleFilenameTemplate: "file:///[absolute-resource-path]",
     globalObject: "this",
@@ -21,7 +24,9 @@ module.exports = {
   target: "node",
   devtool: "source-map",
   resolve: {
-    mainFields: ["main"]
+    mainFields: ["main"],
+    aliasFields: ["browser"],
+    alias: { mocha$: "mocha/lib/mocha" }
   },
   module: {
     rules: [
@@ -50,5 +55,8 @@ module.exports = {
   },
   externals: {
     "@bentley/imodeljs-native": "commonjs @bentley/imodeljs-native",
-  }
+  },
+  plugins: [
+    new CopyExternalsPlugin()
+  ],
 }
