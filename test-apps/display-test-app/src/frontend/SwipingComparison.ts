@@ -2,16 +2,16 @@
 * Copyright (c) Bentley Systems, Incorporated. All rights reserved.
 * See LICENSE.md in the project root for license terms and full copyright notice.
 *--------------------------------------------------------------------------------------------*/
-import { ClipStyle, ColorDef, CutStyle, FeatureAppearance, Frustum, RenderMode, RgbColor } from "@itwin/core-common";
+import { ClipStyle, CutStyle, FeatureAppearance, Frustum, RenderMode } from "@itwin/core-common";
 import { AccuDrawHintBuilder, FeatureOverrideProvider, FeatureSymbology, GraphicBranch, IModelApp, RenderClipVolume, SceneContext, ScreenViewport, TiledGraphicsProvider, TileTreeReference, Viewport } from "@itwin/core-frontend";
 import { ClipPlane, ClipPrimitive, ClipVector, ConvexClipPlaneSet, Point3d, Transform, Vector3d } from "@itwin/core-geometry";
 
 export enum ComparisonType {
   Wireframe,
-  // RealityData,
   AppearanceOverrides,
   AlwaysDrawn,
   ClipStyles,
+  RealityData
 }
 
 class FeatureComparison implements FeatureOverrideProvider {
@@ -127,9 +127,9 @@ export default class SwipingComparisonApi {
       default:
         rtnProvider = new ComparisonWireframeProvider(negatedClip, viewport);
         break;
-      // case ComparisonType.RealityData:
-      //   rtnProvider = new ComparisonRealityModelProvider(negatedClip);
-      //   break;
+      case ComparisonType.RealityData:
+        rtnProvider = new ComparisonRealityModelProvider(negatedClip, viewport);
+        break;
       case ComparisonType.AppearanceOverrides:
         rtnProvider = new FeatureOverrideComparisonProvider(negatedClip, viewport);
         break;
@@ -186,12 +186,12 @@ export default class SwipingComparisonApi {
   // }
 
   /** Set the transparency of the reality models using the Feature Override API. */
-  // public static setRealityModelTransparent(vp: Viewport, transparent: boolean): void {
-  //   const override = { transparency: transparent ? 1.0 : 0.0 };
-  //   vp.displayStyle.settings.contextRealityModels.models.forEach((model) => {
-  //     model.appearanceOverrides = model.appearanceOverrides ? model.appearanceOverrides.clone(override) : FeatureAppearance.fromJSON(override);
-  //   });
-  // }
+  public static setRealityModelTransparent(vp: Viewport, transparent: boolean): void {
+    const override = { transparency: transparent ? 1.0 : 0.0 };
+    vp.displayStyle.settings.contextRealityModels.models.forEach((model) => {
+      model.appearanceOverrides = model.appearanceOverrides ? model.appearanceOverrides.clone(override) : FeatureAppearance.fromJSON(override);
+    });
+  }
 }
 
 abstract class SampleTiledGraphicsProvider implements TiledGraphicsProvider {
@@ -199,7 +199,7 @@ abstract class SampleTiledGraphicsProvider implements TiledGraphicsProvider {
   // // Do not apply the view's clip to this provider's graphics - it applies its own (opposite) clip to its graphics.
   public viewFlagOverrides = { renderMode: RenderMode.Wireframe, showClipVolume: false };
   public clipVolume: RenderClipVolume | undefined;
-  constructor(clipVector: ClipVector, _vp: Viewport) {
+  constructor(clipVector: ClipVector) {
     // Create the object that will be used later by the "addToScene" method.
     this.setClipVector(clipVector);
   }
@@ -266,7 +266,7 @@ class ComparisonWireframeProvider extends SampleTiledGraphicsProvider {
   private _oldClip: ClipVector | undefined;
 
   constructor(clip: ClipVector, vp: Viewport) {
-    super(clip, vp);
+    super(clip);
     // Create the objects that will be used later by the "addToScene" method.
     this.viewFlagOverrides.renderMode = RenderMode.Wireframe;
 
@@ -289,7 +289,7 @@ class FeatureOverrideComparisonProvider extends SampleTiledGraphicsProvider {
   public comparisonType = ComparisonType.AppearanceOverrides;
 
   constructor(clip: ClipVector, vp: Viewport) {
-    super(clip, vp);
+    super(clip);
 
     // even if clip volume is not enabled, the graphics branch created by the provider still obeys it.
     vp.viewFlags = vp.viewFlags.with("clipVolume", false);
@@ -308,11 +308,11 @@ class FeatureOverrideComparisonProvider extends SampleTiledGraphicsProvider {
 /** Should render nothing on the main side, but render all models on the comparison side. */
 class ClipStyleComparisonProvider extends SampleTiledGraphicsProvider {
   public comparisonType = ComparisonType.ClipStyles;
-  public readonly compare1ClipStyle = ClipStyle.create(false, CutStyle.defaults, RgbColor.fromColorDef(ColorDef.blue), RgbColor.fromColorDef(ColorDef.green));
-  public readonly compare2ClipStyle = ClipStyle.create(true, CutStyle.defaults, RgbColor.fromColorDef(ColorDef.red), RgbColor.fromColorDef(ColorDef.black));
+  public readonly compare1ClipStyle = ClipStyle.fromJSON({produceCutGeometry: false, cutStyle: undefined, insideColor: {r: 0, g: 0, b: 255}, outsideColor: {r: 0, g: 255, b:0 }});
+  public readonly compare2ClipStyle = ClipStyle.fromJSON({produceCutGeometry: true, cutStyle: CutStyle.defaults.toJSON(), insideColor: {r: 0, g: 0, b: 0}, outsideColor: {r: 255, g: 255, b: 255 }});
 
   constructor(clip: ClipVector, vp: Viewport) {
-    super(clip, vp);
+    super(clip);
 
     // even if clip volume is not enabled, the graphics branch created by the provider still obeys it.
     vp.viewFlags = vp.viewFlags.with("clipVolume", true);
@@ -332,7 +332,7 @@ class AlwaysDrawnComparisonProvider extends SampleTiledGraphicsProvider {
   public comparisonType = ComparisonType.AlwaysDrawn;
 
   constructor(clip: ClipVector, vp: Viewport) {
-    super(clip, vp);
+    super(clip);
 
     // even if clip volume is not enabled, the graphics branch created by the provider still obeys it.
     vp.viewFlags = vp.viewFlags.with("clipVolume", false);
@@ -347,15 +347,21 @@ class AlwaysDrawnComparisonProvider extends SampleTiledGraphicsProvider {
   }
 }
 
-// class ComparisonRealityModelProvider extends SampleTiledGraphicsProvider {
-//   public comparisonType = ComparisonType.RealityData;
+class ComparisonRealityModelProvider extends SampleTiledGraphicsProvider {
+  public comparisonType = ComparisonType.RealityData;
+  constructor(clip: ClipVector, vp: Viewport) {
+    super(clip);
 
-//   protected prepareNewBranch(vp: Viewport): void {
-//     // Hides the reality model while rendering the other graphics branch.
-//     SwipingComparisonApi.setRealityModelTransparent(vp, true);
-//   }
-//   protected resetOldView(vp: Viewport): void {
-//     // Makes the reality model visible again in the viewport.
-//     SwipingComparisonApi.setRealityModelTransparent(vp, false);
-//   }
-// }
+    // even if clip volume is not enabled, the graphics branch created by the provider still obeys it.
+    vp.viewFlags = vp.viewFlags.with("clipVolume", true);
+  }
+
+  protected prepareNewBranch(vp: Viewport): void {
+    // Hides the reality model while rendering the other graphics branch.
+    SwipingComparisonApi.setRealityModelTransparent(vp, true);
+  }
+  protected resetOldView(vp: Viewport): void {
+    // Makes the reality model visible again in the viewport.
+    SwipingComparisonApi.setRealityModelTransparent(vp, false);
+  }
+}
