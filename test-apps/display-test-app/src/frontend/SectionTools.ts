@@ -112,7 +112,7 @@ export abstract class ComparisonTool {
 
 class ViewDiffTool  extends ComparisonTool {
   public applyComparison(vp: Viewport, clipPoint: Point3d, negate: boolean): void {
-    SwipingComparisonApi.compare(clipPoint, vp, ComparisonType.AppearanceOverrides, negate);
+    SwipingComparisonApi.compare(clipPoint, vp, ComparisonType.Wireframe, negate);
   }
 }
 

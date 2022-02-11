@@ -2,7 +2,7 @@
 * Copyright (c) Bentley Systems, Incorporated. All rights reserved.
 * See LICENSE.md in the project root for license terms and full copyright notice.
 *--------------------------------------------------------------------------------------------*/
-import { ClipStyle, CutStyle, FeatureAppearance, Frustum, RenderMode } from "@itwin/core-common";
+import { ClipStyle, CutStyle, FeatureAppearance, Frustum, RenderMode, ViewFlagOverrides } from "@itwin/core-common";
 import { AccuDrawHintBuilder, FeatureOverrideProvider, FeatureSymbology, GraphicBranch, IModelApp, RenderClipVolume, SceneContext, ScreenViewport, TiledGraphicsProvider, TileTreeReference, Viewport } from "@itwin/core-frontend";
 import { ClipPlane, ClipPrimitive, ClipVector, ConvexClipPlaneSet, Point3d, Transform, Vector3d } from "@itwin/core-geometry";
 
@@ -197,7 +197,7 @@ export default class SwipingComparisonApi {
 abstract class SampleTiledGraphicsProvider implements TiledGraphicsProvider {
   public readonly abstract comparisonType: ComparisonType;
   // // Do not apply the view's clip to this provider's graphics - it applies its own (opposite) clip to its graphics.
-  public viewFlagOverrides = { renderMode: RenderMode.Wireframe, showClipVolume: false };
+  public viewFlagOverrides: ViewFlagOverrides = { renderMode: RenderMode.Wireframe, clipVolume: false };
   public clipVolume: RenderClipVolume | undefined;
   constructor(clipVector: ClipVector) {
     // Create the object that will be used later by the "addToScene" method.
@@ -208,7 +208,7 @@ abstract class SampleTiledGraphicsProvider implements TiledGraphicsProvider {
   public forEachTileTreeRef(viewport: ScreenViewport, func: (ref: TileTreeReference) => void): void {
     viewport.view.forEachTileTreeRef(func);
 
-    // this.viewFlagOverrides.showClipVolume = false;
+    // this.viewFlagOverrides.clipVolume = false;
   }
 
   /** Overrides the logic for adding this provider's graphics into the scene. */
