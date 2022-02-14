@@ -24,7 +24,8 @@
     "ios:webpack:tests": "webpack --config ios.webpack.config.js",
     "ios:copy:project": "cpx \"./ios/test-app-template/**/*\" ./lib/ios",
     "ios:copy:assets": "cpx \"./src/assets/**/*\" ./lib/ios/assets/assets && cpx \"./src/test/assets/**/*\" ./lib/ios/assets/assets",
-    "build:ios": "npm run -s build && npm run -s ios:webpack:tests && npm run -s ios:copy:project && npm run -s ios:copy:assets"
+    "ios:build:xctests": "xcrun xcodebuild build-for-testing -configuration Debug -sdk iphoneos -project ./lib/ios/imodeljs-test-app.xcodeproj -scheme imodeljs-test-app -derivedDataPath ./lib/ios/DerivedData -allowProvisioningUpdates",
+    "ios:build:test-app": "npm run -s build && npm run -s ios:webpack:tests && npm run -s ios:copy:project && npm run -s ios:copy:assets && npm run -s ios:build:xctests"
   },
   "repository": {
     "type": "git",

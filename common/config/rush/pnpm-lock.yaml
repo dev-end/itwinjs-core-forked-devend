@@ -95,6 +95,7 @@ importers:
       '@itwin/core-common': workspace:*
       '@itwin/core-geometry': workspace:*
       '@itwin/core-telemetry': workspace:*
+      '@itwin/core-webpack-tools': workspace:*
       '@itwin/ecschema-metadata': workspace:*
       '@itwin/eslint-plugin': workspace:*
       '@types/chai': ^4.1.4
@@ -144,6 +145,7 @@ importers:
       '@itwin/core-bentley': link:../bentley
       '@itwin/core-common': link:../common
       '@itwin/core-geometry': link:../geometry
+      '@itwin/core-webpack-tools': link:../../tools/webpack-core
       '@itwin/ecschema-metadata': link:../ecschema-metadata
       '@itwin/eslint-plugin': link:../../tools/eslint-plugin
       '@types/chai': 4.3.0
@@ -7285,8 +7287,8 @@ packages:
       oidc-client: 1.11.5
     dev: false
 
-  /@itwin/certa/3.1.0-dev.15:
-    resolution: {integrity: sha512-WSO1myYRVm+fmilp7+pE2Xwq3hsXQyqKy+TrOrLSNBd0dIEz6mblVlEUYAGgo8xf6yeUv4pgX++vZSTRFRIbww==}
+  /@itwin/certa/3.1.0-dev.25:
+    resolution: {integrity: sha512-z+6NKSvFeULf08+HYIZwRaKs6ENrOVBOCOkgDMXR7Q6tiUCxeQBV/Hpyu1f9Fniy3nBSTvO0zOQav6wI+tx+WA==}
     hasBin: true
     peerDependencies:
       electron: ^14.0.0
@@ -7308,8 +7310,8 @@ packages:
       - supports-color
       - utf-8-validate
 
-  /@itwin/certa/3.1.0-dev.15_electron@14.2.4:
-    resolution: {integrity: sha512-WSO1myYRVm+fmilp7+pE2Xwq3hsXQyqKy+TrOrLSNBd0dIEz6mblVlEUYAGgo8xf6yeUv4pgX++vZSTRFRIbww==}
+  /@itwin/certa/3.1.0-dev.25_electron@14.2.4:
+    resolution: {integrity: sha512-z+6NKSvFeULf08+HYIZwRaKs6ENrOVBOCOkgDMXR7Q6tiUCxeQBV/Hpyu1f9Fniy3nBSTvO0zOQav6wI+tx+WA==}
     hasBin: true
     peerDependencies:
       electron: ^14.0.0
@@ -7337,8 +7339,8 @@ packages:
     resolution: {integrity: sha512-W+R80ZFC+d+0bXp7wGht7oDuCou2l/gHHP+uvy0lZUY3WnPq71LCAKpCzrUVcGusM41bCumoavWnW/xGAt/0hg==}
     dev: false
 
-  /@itwin/core-bentley/3.1.0-dev.15:
-    resolution: {integrity: sha512-0c1G1ecBJiFnqbdU9NsLvuKRSMJvWGSSk0Pz0UXaBfK/OmtM1xsyISy4bGAys02mZVGZees9BjEO3M3pkbdxSg==}
+  /@itwin/core-bentley/3.1.0-dev.25:
+    resolution: {integrity: sha512-UBG78zT0a+PSv1F7Q+pzSqnKI9CC7FEs5KvB0F8pMmVFkyw9v39uEXJZjdlpAccdmTVJT/586vOSRvcVGo0wSQ==}
 
   /@itwin/core-geometry/3.0.0-dev.185:
     resolution: {integrity: sha512-UQvZdMaSraChiEudZxYJkC/cCWskHqmLLN9IB2iG83MYwYGJ9zrehjolh+ZAch261IRmBJ8E85P8HfRIvndIeA==}
@@ -7482,8 +7484,8 @@ packages:
   /@itwin/oidc-signin-tool/3.0.0:
     resolution: {integrity: sha512-zp6S6tQDyI0MSEoA7THlyXJlrtlqhk7X7BMpH8VMkvabEgJOY9AdLjoFbvJPZhcnhjq7CMdxXJWVC3D9QOaYgA==}
     dependencies:
-      '@itwin/certa': 3.1.0-dev.15
-      '@itwin/core-bentley': 3.1.0-dev.15
+      '@itwin/certa': 3.1.0-dev.25
+      '@itwin/core-bentley': 3.1.0-dev.25
       dotenv: 10.0.0
       dotenv-expand: 5.1.0
       openid-client: 4.9.1
@@ -7497,8 +7499,8 @@ packages:
   /@itwin/oidc-signin-tool/3.0.0_electron@14.2.4:
     resolution: {integrity: sha512-zp6S6tQDyI0MSEoA7THlyXJlrtlqhk7X7BMpH8VMkvabEgJOY9AdLjoFbvJPZhcnhjq7CMdxXJWVC3D9QOaYgA==}
     dependencies:
-      '@itwin/certa': 3.1.0-dev.15_electron@14.2.4
-      '@itwin/core-bentley': 3.1.0-dev.15
+      '@itwin/certa': 3.1.0-dev.25_electron@14.2.4
+      '@itwin/core-bentley': 3.1.0-dev.25
       dotenv: 10.0.0
       dotenv-expand: 5.1.0
       openid-client: 4.9.1
@@ -7810,7 +7812,7 @@ packages:
       '@types/base64-js': 1.3.0
       '@types/jquery': 3.5.13
       base64-js: 1.5.1
-      follow-redirects: 1.14.7_debug@4.3.3
+      follow-redirects: 1.14.7
       form-data: 4.0.0
       opener: 1.5.2
     transitivePeerDependencies:
@@ -9852,7 +9854,7 @@ packages:
   /axios/0.24.0:
     resolution: {integrity: sha512-Q6cWsys88HoPgAaFAVUb0WpPk0O8iTeisR9IMqy9G8AbO4NlpVknrnQS03zzF9PGAWgO3cgletO3VjV/P7VztA==}
     dependencies:
-      follow-redirects: 1.14.7_debug@4.3.3
+      follow-redirects: 1.14.7
     transitivePeerDependencies:
       - debug
     dev: false
@@ -13461,18 +13463,6 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
-    dev: false
-
-  /follow-redirects/1.14.7_debug@4.3.3:
-    resolution: {integrity: sha512-+hbxoLbFMbRKDwohX8GkTataGqO6Jb7jGwpAlwgy2bIz25XtRm7KEzJM76R1WiNT5SwZkX4Y75SwBolkpmE7iQ==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
-    dependencies:
-      debug: 4.3.3_supports-color@6.1.0
 
   /for-in/1.0.2:
     resolution: {integrity: sha1-gQaNKVqBQuwKxybG4iAMMPttXoA=}
@@ -14289,7 +14279,7 @@ packages:
     engines: {node: '>=8.0.0'}
     dependencies:
       eventemitter3: 4.0.7
-      follow-redirects: 1.14.7_debug@4.3.3
+      follow-redirects: 1.14.7
       requires-port: 1.0.0
     transitivePeerDependencies:
       - debug
