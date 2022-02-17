@@ -1,15 +1,16 @@
 # Running core tests on ios
 
-Steps one through four are performed on every `npm run build:ios`. Steps five and six are required
+The goal of this workflow is to generate a core-test-runner xcode project that does not depend on this repo, and can be built, copied, and executed anywhere.
 
-1. Webpack the tests using the test.webpack.config.js.
+The following takes place on every `npm run ios:build:test-runner`.
 
-2. Install the ios native library via ios/scripts/installIosNativeLib.js
+1. Webpack Mocha and tests.
+    - Note the `entry` field in `test.webpack.config.js`. First, Mocha is required globally and configured programmatically. Then the tests are bundled via glob. Finally, mocha is run programmatically. See tools/build/mocha-reporter/index.js for details on how test termination is signalled to core-test-runner.
 
-3. Copy this template to lib/ios. **Do not edit the copied project. It should only be used to run the tests.**
+2. Copy the template project to ./lib/ios.
+    - The copied project should not be edited directly. Instead, edit the template and repeat these steps. Use the copied project to run the tests.
 
-4. Copy the webpacked test file and ios/scripts/main.js. This is the entry point provided to iModeljsHost. It invokes mocha on the webpacked tests. Any other assets required by the tests should be copied at this time.
+3. Copy test assets.
+    - The location, ./lib/ios/assets/, is referenced in core-test-runner-template/Config.xcconfig. These assets are copied in a build step defined in the Xcode project.
 
-5. In lib/ios/assets, run `npm init -y` and `npm install mocha`.
-
-6. Open the project in Xcode and run.
+4. Build the application and an XCUITest bundle into ./lib/ios/DerivedData/Build. The resulting build can be uploaded to App Center for testing.

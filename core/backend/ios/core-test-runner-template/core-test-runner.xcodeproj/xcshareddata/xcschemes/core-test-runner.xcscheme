@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "415D587F23E37F5200907B7B"
-               BuildableName = "imodeljs-test-app.app"
-               BlueprintName = "imodeljs-test-app"
-               ReferencedContainer = "container:imodeljs-test-app.xcodeproj">
+               BuildableName = "core-test-runner.app"
+               BlueprintName = "core-test-runner"
+               ReferencedContainer = "container:core-test-runner.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -28,10 +28,40 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference
+            skipped = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D31A818727BAEEFD003A76AE"
+               BuildableName = "imodeljs-test-app-tests.xctest"
+               BlueprintName = "imodeljs-test-app-tests"
+               ReferencedContainer = "container:core-test-runner.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D31A819427BAF5AA003A76AE"
+               BuildableName = "imodeljs-test-appUITests.xctest"
+               BlueprintName = "imodeljs-test-appUITests"
+               ReferencedContainer = "container:core-test-runner.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D339655627BC2CFD00355600"
+               BuildableName = "core-test-runner-tests.xctest"
+               BlueprintName = "core-test-runner-tests"
+               ReferencedContainer = "container:core-test-runner.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Release"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -45,9 +75,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "415D587F23E37F5200907B7B"
-            BuildableName = "imodeljs-test-app.app"
-            BlueprintName = "imodeljs-test-app"
-            ReferencedContainer = "container:imodeljs-test-app.xcodeproj">
+            BuildableName = "core-test-runner.app"
+            BlueprintName = "core-test-runner"
+            ReferencedContainer = "container:core-test-runner.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +92,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "415D587F23E37F5200907B7B"
-            BuildableName = "imodeljs-test-app.app"
-            BlueprintName = "imodeljs-test-app"
-            ReferencedContainer = "container:imodeljs-test-app.xcodeproj">
+            BuildableName = "core-test-runner.app"
+            BlueprintName = "core-test-runner"
+            ReferencedContainer = "container:core-test-runner.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

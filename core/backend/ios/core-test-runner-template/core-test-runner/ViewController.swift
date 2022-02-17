@@ -10,21 +10,21 @@ import IModelJsNative
 class ViewController: UIViewController, WKUIDelegate, WKNavigationDelegate, UIDocumentPickerDelegate {
     private var webView : WKWebView? = nil
 
-
-    func setupBackend () {
-        let host = IModelJsHost.sharedInstance()
-        let bundlePath = Bundle.main.bundlePath;
-        let mainPath = bundlePath.appending ("/Assets/main.js");
-        let main = URL(fileURLWithPath: mainPath);
-        let client = MobileAuthorizationClient(viewController: self);
-        host.loadBackend(main, withAuthClient: client,withInspect: true)
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupBackend()
-
+        runTests()
     }
 
+    private func runTests () {
+        let host = IModelJsHost.sharedInstance()
+        let bundlePath = Bundle.main.bundlePath
+        let mainPath = bundlePath.appending ("/Assets/main.js")
+        let main = URL(fileURLWithPath: mainPath)
+        let client = MobileAuthorizationClient(viewController: self)
+        host.loadBackend(main, withAuthClient: client, withInspect: true) { (numFailed: UInt32) in
+            print("Finished running tests.")
+            exit(Int32(numFailed))
+        }
+    }
 }
 

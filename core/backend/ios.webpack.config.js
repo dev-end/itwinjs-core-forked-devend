@@ -6,8 +6,6 @@
 const path = require("path");
 const glob = require("glob");
 
-const { CopyExternalsPlugin } = require("@itwin/core-webpack-tools")
-
 module.exports = {
   mode: "development",
   entry: [
@@ -52,11 +50,5 @@ module.exports = {
   node: {
     __filename: false,
     __dirname: false
-  },
-  externals: {
-    "@bentley/imodeljs-native": "commonjs @bentley/imodeljs-native",
-  },
-  plugins: [
-    new CopyExternalsPlugin()
-  ],
+  }
 }
