@@ -16,6 +16,7 @@ import * as React from "react";
 import { assert, Logger, ProcessDetector } from "@itwin/core-bentley";
 import { StagePanelLocation, UiItemsManager, WidgetState } from "@itwin/appui-abstract";
 import { Size, SizeProps, UiStateStorageResult, UiStateStorageStatus } from "@itwin/core-react";
+import { ToolbarPopupAutoHideContext } from "@itwin/components-react";
 import {
   addPanelWidget, addTab, addWidgetTabToFloatingPanel, convertAllPopupWidgetContainersToFloating, createNineZoneState, createTabsState, createTabState,
   createWidgetState, findTab, findWidget, floatingWidgetBringToFront, FloatingWidgetHomeState, FloatingWidgets, getUniqueId, isFloatingLocation,
@@ -41,24 +42,29 @@ import { ToolSettingsContent, WidgetPanelsToolSettings } from "./ToolSettings";
 import { useEscapeSetFocusToHome } from "../hooks/useEscapeSetFocusToHome";
 import { FrameworkRootState } from "../redux/StateManager";
 import { useSelector } from "react-redux";
+import { useUiVisibility } from "../hooks/useUiVisibility";
 
 const panelZoneKeys: StagePanelZoneDefKeys[] = ["start", "middle", "end"];
 
 // istanbul ignore next
 const WidgetPanelsFrontstageComponent = React.memo(function WidgetPanelsFrontstageComponent() { // eslint-disable-line @typescript-eslint/naming-convention, no-shadow
   const activeModalFrontstageInfo = useActiveModalFrontstageInfo();
+  const uiIsVisible = useUiVisibility();
+
   return (
     <>
-      <ModalFrontstageComposer stageInfo={activeModalFrontstageInfo} />
-      <WidgetPanelsToolSettings />
-      <WidgetPanels
-        className="uifw-widgetPanels"
-        centerContent={<WidgetPanelsToolbars />}
-      >
-        <WidgetPanelsFrontstageContent />
-      </WidgetPanels>
-      <WidgetPanelsStatusBar />
-      <FloatingWidgets />
+      <ToolbarPopupAutoHideContext.Provider value={!uiIsVisible}>
+        <ModalFrontstageComposer stageInfo={activeModalFrontstageInfo} />
+        <WidgetPanelsToolSettings />
+        <WidgetPanels
+          className="uifw-widgetPanels"
+          centerContent={<WidgetPanelsToolbars />}
+        >
+          <WidgetPanelsFrontstageContent />
+        </WidgetPanels>
+        <WidgetPanelsStatusBar />
+        <FloatingWidgets />
+      </ToolbarPopupAutoHideContext.Provider>
     </>
   );
 });
@@ -253,7 +259,7 @@ export function useLabels() {
 
 /** @internal */
 export function addWidgets(state: NineZoneState, widgets: ReadonlyArray<WidgetDef>, side: PanelSide, widgetId: WidgetIdTypes): NineZoneState {
-  const visibleWidgets = widgets.filter((w) => w.isVisible);
+  const visibleWidgets = widgets.filter((w) => w.isVisible && (w.defaultState !== WidgetState.Floating));
   if (visibleWidgets.length === 0)
     return state;
 
@@ -272,10 +278,12 @@ export function addWidgets(state: NineZoneState, widgets: ReadonlyArray<WidgetDe
 
   const activeWidget = visibleWidgets.find((widget) => widget.isActive);
   const minimized = !activeWidget;
-  state = addPanelWidget(state, side, widgetId, tabs, {
-    activeTabId: activeWidget ? activeWidget.id : tabs[0],
-    minimized,
-  });
+  if (activeWidget?.defaultState !== WidgetState.Floating) {
+    state = addPanelWidget(state, side, widgetId, tabs, {
+      activeTabId: activeWidget ? activeWidget.id : tabs[0],
+      minimized,
+    });
+  }
 
   return state;
 }
@@ -672,6 +680,10 @@ export function initializeNineZoneState(frontstageDef: FrontstageDef): NineZoneS
       toolSettingsTab.preferredPanelWidgetSize = toolSettingsWidgetDef.preferredPanelSize;
     }
   });
+  nineZone = addMissingWidgets(frontstageDef, nineZone);
+  nineZone = removeHiddenWidgets(nineZone, frontstageDef);
+  nineZone = processPopoutWidgets(nineZone, frontstageDef);
+
   return nineZone;
 }
 

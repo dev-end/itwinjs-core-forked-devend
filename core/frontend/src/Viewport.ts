@@ -47,10 +47,12 @@ import { createRenderPlanFromViewport } from "./render/RenderPlan";
 import { RenderTarget } from "./render/RenderTarget";
 import { StandardView, StandardViewId } from "./StandardView";
 import { SubCategoriesCache } from "./SubCategoriesCache";
-import { DisclosedTileTreeSet, MapLayerImageryProvider, MapTiledGraphicsProvider, MapTileTreeReference, TileBoundingBoxes, TiledGraphicsProvider, TileTreeReference } from "./tile/internal";
+import {
+  DisclosedTileTreeSet, MapLayerImageryProvider, MapTiledGraphicsProvider, MapTileTreeReference, TileBoundingBoxes, TiledGraphicsProvider, TileTreeReference, TileUser,
+} from "./tile/internal";
 import { EventController } from "./tools/EventController";
 import { ToolSettings } from "./tools/ToolSettings";
-import { Animator, OnViewExtentsError, ViewAnimationOptions, ViewChangeOptions } from "./ViewAnimation";
+import { Animator, MarginOptions, OnViewExtentsError, ViewAnimationOptions, ViewChangeOptions } from "./ViewAnimation";
 import { DecorateContext, SceneContext } from "./ViewContext";
 import { GlobalLocation } from "./ViewGlobalLocation";
 import { ViewingSpace } from "./ViewingSpace";
@@ -241,7 +243,7 @@ export interface ReadImageBufferArgs {
  * @see [[ViewManager]]
  * @public
  */
-export abstract class Viewport implements IDisposable {
+export abstract class Viewport implements IDisposable, TileUser {
   /** Event called whenever this viewport is synchronized with its [[ViewState]].
    * @note This event is invoked *very* frequently. To avoid negatively impacting performance, consider using one of the more specific Viewport events;
    * otherwise, avoid performing excessive computations in response to this event.
@@ -439,7 +441,6 @@ export abstract class Viewport implements IDisposable {
 
   /** Don't allow entries in the view undo buffer unless they're separated by more than this amount of time. */
   public static undoDelay = BeDuration.fromSeconds(.5);
-  private static _nextViewportId = 1;
 
   private _debugBoundingBoxes: TileBoundingBoxes = TileBoundingBoxes.None;
   private _freezeScene = false;
@@ -795,7 +796,7 @@ export abstract class Viewport implements IDisposable {
    * the Model of baseModelId should be the same type (Drawing or Sheet) as the current view.
    * @note this method clones the current ViewState2d and sets its baseModelId to the supplied value. The DisplayStyle and CategorySelector remain unchanged.
    */
-  public async changeViewedModel2d(baseModelId: Id64String, options?: ChangeViewedModel2dOptions & ViewChangeOptions): Promise<void> {
+  public async changeViewedModel2d(baseModelId: Id64String, options?: ChangeViewedModel2dOptions & ViewChangeOptions & MarginOptions): Promise<void> {
     if (!this.view.is2d())
       return;
 
@@ -956,9 +957,9 @@ export abstract class Viewport implements IDisposable {
   protected constructor(target: RenderTarget) {
     this._target = target;
     target.assignFrameStatsCollector(this._frameStatsCollector);
-    this._viewportId = Viewport._nextViewportId++;
+    this._viewportId = TileUser.generateId();
     this._perModelCategoryVisibility = PerModelCategoryVisibility.createOverrides(this);
-    IModelApp.tileAdmin.registerViewport(this);
+    IModelApp.tileAdmin.registerUser(this);
   }
 
   public dispose(): void {
@@ -967,7 +968,7 @@ export abstract class Viewport implements IDisposable {
 
     this._target = dispose(this._target);
     this.subcategories.dispose();
-    IModelApp.tileAdmin.forgetViewport(this);
+    IModelApp.tileAdmin.forgetUser(this);
     this.onDisposed.raiseEvent(this);
     this.detachFromView();
   }
@@ -1500,7 +1501,7 @@ export abstract class Viewport implements IDisposable {
   /** The number of outstanding requests for tiles to be displayed in this viewport.
    * @see Viewport.numSelectedTiles
    */
-  public get numRequestedTiles(): number { return IModelApp.tileAdmin.getNumRequestsForViewport(this); }
+  public get numRequestedTiles(): number { return IModelApp.tileAdmin.getNumRequestsForUser(this); }
 
   /** The number of tiles selected for display in the view as of the most recently-drawn frame.
    * The tiles selected may not meet the desired level-of-detail for the view, instead being temporarily drawn while
@@ -1509,7 +1510,7 @@ export abstract class Viewport implements IDisposable {
    * @see Viewport.numReadyTiles
    */
   public get numSelectedTiles(): number {
-    const tiles = IModelApp.tileAdmin.getTilesForViewport(this);
+    const tiles = IModelApp.tileAdmin.getTilesForUser(this);
     return undefined !== tiles ? tiles.selected.size + tiles.external.selected : 0;
   }
 
@@ -1521,7 +1522,7 @@ export abstract class Viewport implements IDisposable {
    * @see Viewport.numRequestedTiles
    */
   public get numReadyTiles(): number {
-    const tiles = IModelApp.tileAdmin.getTilesForViewport(this);
+    const tiles = IModelApp.tileAdmin.getTilesForUser(this);
     return undefined !== tiles ? tiles.ready.size + tiles.external.ready : 0;
   }
 
@@ -1846,7 +1847,7 @@ export abstract class Viewport implements IDisposable {
    * @param factor the zoom factor.
    * @param options options for behavior of view change
    */
-  public zoom(newCenter: Point3d | undefined, factor: number, options?: ViewChangeOptions & OnViewExtentsError): ViewStatus {
+  public zoom(newCenter: Point3d | undefined, factor: number, options?: ViewChangeOptions & MarginOptions & OnViewExtentsError): ViewStatus {
     const view = this.view;
     if (undefined === view)
       return ViewStatus.InvalidViewport;
@@ -1892,7 +1893,7 @@ export abstract class Viewport implements IDisposable {
   }
 
   /** @see [[zoomToPlacements]]. */
-  public zoomToPlacementProps(placementProps: PlacementProps[], options?: ViewChangeOptions & ZoomToOptions): void {
+  public zoomToPlacementProps(placementProps: PlacementProps[], options?: ViewChangeOptions & MarginOptions & ZoomToOptions): void {
     const placements = placementProps.map((props) => isPlacement2dProps(props) ? Placement2d.fromJSON(props) : Placement3d.fromJSON(props));
     this.zoomToPlacements(placements, options);
   }
@@ -1904,7 +1905,7 @@ export abstract class Viewport implements IDisposable {
    * @see [[zoomToElements]] to zoom to a set of elements.
    * @see [[IModelConnection.Elements.getPlacements]] to obtain the placements for a set of elements.
    */
-  public zoomToPlacements(placements: Placement[], options?: ViewChangeOptions & ZoomToOptions): void {
+  public zoomToPlacements(placements: Placement[], options?: ViewChangeOptions & MarginOptions & ZoomToOptions): void {
     placements = placements.filter((x) => x.isValid);
     if (placements.length === 0)
       return;
@@ -1928,7 +1929,7 @@ export abstract class Viewport implements IDisposable {
     for (const placement of placements)
       viewRange.extendArray(placement.getWorldCorners(frust).points, viewTransform);
 
-    const ignoreError: ViewChangeOptions & OnViewExtentsError = {
+    const ignoreError: ViewChangeOptions & MarginOptions & OnViewExtentsError = {
       ...options,
       onExtentsError: () => ViewStatus.Success,
     };
@@ -1942,7 +1943,7 @@ export abstract class Viewport implements IDisposable {
    * @param options options that control how the view change works and whether to change view rotation.
    * @note Do not query for ElementProps just to zoom to their placements - [[zoomToElements]] is much more efficient because it queries only for the placement properties.
    */
-  public zoomToElementProps(elementProps: ElementProps[], options?: ViewChangeOptions & ZoomToOptions): void {
+  public zoomToElementProps(elementProps: ElementProps[], options?: ViewChangeOptions & MarginOptions & ZoomToOptions): void {
     if (elementProps.length === 0)
       return;
 
@@ -1960,7 +1961,7 @@ export abstract class Viewport implements IDisposable {
    * @param ids the element id(s) to include. Will zoom to the union of the placements.
    * @param options options that control how the view change works and whether to change view rotation.
    */
-  public async zoomToElements(ids: Id64Arg, options?: ViewChangeOptions & ZoomToOptions): Promise<void> {
+  public async zoomToElements(ids: Id64Arg, options?: ViewChangeOptions & MarginOptions & ZoomToOptions): Promise<void> {
     const placements = await this.iModel.elements.getPlacements(ids, { type: this.view.is3d() ? "3d" : "2d" });
     this.zoomToPlacements(placements, options);
   }
@@ -1969,7 +1970,7 @@ export abstract class Viewport implements IDisposable {
    * @param volume The low and high corners, in world coordinates.
    * @param options options that control how the view change works
    */
-  public zoomToVolume(volume: LowAndHighXYZ | LowAndHighXY, options?: ViewChangeOptions) {
+  public zoomToVolume(volume: LowAndHighXYZ | LowAndHighXY, options?: ViewChangeOptions & MarginOptions) {
     this.view.lookAtVolume(volume, this.viewRect.aspect, options);
     this.synchWithView(options);
   }
@@ -2300,8 +2301,8 @@ export abstract class Viewport implements IDisposable {
     if (!this._sceneValid) {
       if (!this._freezeScene) {
         this._frameStatsCollector.beginTime("createChangeSceneTime");
-        IModelApp.tileAdmin.clearTilesForViewport(this);
-        IModelApp.tileAdmin.clearUsageForViewport(this);
+        IModelApp.tileAdmin.clearTilesForUser(this);
+        IModelApp.tileAdmin.clearUsageForUser(this);
 
         const context = this.createSceneContext();
         this.createScene(context);
@@ -2634,6 +2635,16 @@ export abstract class Viewport implements IDisposable {
       removeStyleListener();
       removeViewListener();
     };
+  }
+
+  /** TileUser implementation @internal */
+  public get tileUserId(): number {
+    return this.viewportId;
+  }
+
+  /** TileUser implementation @internal */
+  public onRequestStateChanged(): void {
+    this.invalidateScene();
   }
 }
 
