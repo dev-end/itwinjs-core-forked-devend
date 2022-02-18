@@ -11,6 +11,6 @@ The following takes place on every `npm run ios:build:test-runner`.
     - The copied project should not be edited directly. Instead, edit the template and repeat these steps. Use the copied project to run the tests.
 
 3. Copy test assets.
-    - The location, ./lib/ios/assets/, is referenced in core-test-runner-template/Config.xcconfig. These assets are copied in a build step defined in the Xcode project.
+    - The ./lib/ios/assets/ directory is referenced in core-test-runner-template/Config.xcconfig. These assets are copied in a build step defined in the Xcode project.
 
 4. Build the application and an XCUITest bundle into ./lib/ios/DerivedData/Build. The resulting build can be uploaded to App Center for testing.

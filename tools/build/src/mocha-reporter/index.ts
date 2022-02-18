@@ -85,6 +85,12 @@ class BentleyMochaReporter extends Spec {
       }, 5000).unref();
     }
 
+    // Upon receiving the "notifyListening" signal, iModelJsHost will invoke the onReady callback passed via loadBackend().
+    // Without this the test runner will run indefinitely instead of terminating on test completion.
+    if (process.platform as any == "ios") {
+      (process as any)._linkedBinding("iModelJsMobile").notifyListening(this.stats.failures);
+    }
+
     if (!this.stats.pending)
       return;
 
