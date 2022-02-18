@@ -15,7 +15,7 @@
 		415D589023E37F5300907B7B /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 415D588E23E37F5300907B7B /* LaunchScreen.storyboard */; };
 		415D589C23E38D0C00907B7B /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 415D589B23E38D0C00907B7B /* Config.xcconfig */; };
 		D339655A27BC2CFD00355600 /* core_test_runner_tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D339655927BC2CFD00355600 /* core_test_runner_tests.swift */; };
-		D3A39CE827AD90A6007397D1 /* ITwinMobile in Frameworks */ = {isa = PBXBuildFile; productRef = D3A39CE727AD90A6007397D1 /* ITwinMobile */; };
+		D38A9F3727C01216000348EF /* ITwinMobile in Frameworks */ = {isa = PBXBuildFile; productRef = D38A9F3627C01216000348EF /* ITwinMobile */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,7 +60,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D3A39CE827AD90A6007397D1 /* ITwinMobile in Frameworks */,
+				D38A9F3727C01216000348EF /* ITwinMobile in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -134,7 +134,7 @@
 			);
 			name = "core-test-runner";
 			packageProductDependencies = (
-				D3A39CE727AD90A6007397D1 /* ITwinMobile */,
+				D38A9F3627C01216000348EF /* ITwinMobile */,
 			);
 			productName = "imodeljs-test-app";
 			productReference = 415D588023E37F5200907B7B /* core-test-runner.app */;
@@ -188,7 +188,7 @@
 			);
 			mainGroup = 415D587723E37F5200907B7B;
 			packageReferences = (
-				D3A39CE627AD90A6007397D1 /* XCRemoteSwiftPackageReference "mobile-sdk-ios" */,
+				D38A9F3527C01216000348EF /* XCRemoteSwiftPackageReference "mobile-sdk-ios" */,
 			);
 			productRefGroup = 415D588123E37F5200907B7B /* Products */;
 			projectDirPath = "";
@@ -341,7 +341,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "core-test-runner/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = NO;
@@ -396,7 +396,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = "core-test-runner/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -535,20 +535,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		D3A39CE627AD90A6007397D1 /* XCRemoteSwiftPackageReference "mobile-sdk-ios" */ = {
+		D38A9F3527C01216000348EF /* XCRemoteSwiftPackageReference "mobile-sdk-ios" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/iTwin/mobile-sdk-ios.git";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.9;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		D3A39CE727AD90A6007397D1 /* ITwinMobile */ = {
+		D38A9F3627C01216000348EF /* ITwinMobile */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D3A39CE627AD90A6007397D1 /* XCRemoteSwiftPackageReference "mobile-sdk-ios" */;
+			package = D38A9F3527C01216000348EF /* XCRemoteSwiftPackageReference "mobile-sdk-ios" */;
 			productName = ITwinMobile;
 		};
 /* End XCSwiftPackageProductDependency section */

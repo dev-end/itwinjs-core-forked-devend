@@ -22,10 +22,8 @@
     "lint": "eslint -f visualstudio \"./src/**/*.ts\" 1>&2",
     "test": "mocha",
     "ios:webpack:tests": "webpack --config ios.webpack.config.js",
-    "ios:copy:project": "cpx \"./ios/core-test-runner-template/**/*\" ./lib/ios",
     "ios:copy:assets": "cpx \"./src/assets/**/*\" ./lib/ios/assets/assets && cpx \"./src/test/assets/**/*\" ./lib/ios/assets/assets",
-    "ios:build:xctests": "rm -rf ./lib/ios/DerivedData && xcrun xcodebuild build-for-testing -configuration Release -sdk iphoneos -project ./lib/ios/core-test-runner.xcodeproj -scheme core-test-runner -derivedDataPath ./lib/ios/DerivedData -allowProvisioningUpdates",
-    "ios:build:test-runner": "npm run -s build && npm run -s ios:webpack:tests && npm run -s ios:copy:project && npm run -s ios:copy:assets && npm run -s ios:build:xctests"
+    "ios:build:test-runner": "npm run -s build && npm run -s ios:webpack:tests && npm run -s ios:copy:assets"
   },
   "repository": {
     "type": "git",
