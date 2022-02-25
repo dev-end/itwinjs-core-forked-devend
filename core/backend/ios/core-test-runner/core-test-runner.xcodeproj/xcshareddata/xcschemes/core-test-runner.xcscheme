@@ -29,26 +29,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
          <TestableReference
-            skipped = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D31A818727BAEEFD003A76AE"
-               BuildableName = "imodeljs-test-app-tests.xctest"
-               BlueprintName = "imodeljs-test-app-tests"
-               ReferencedContainer = "container:core-test-runner.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D31A819427BAF5AA003A76AE"
-               BuildableName = "imodeljs-test-appUITests.xctest"
-               BlueprintName = "imodeljs-test-appUITests"
-               ReferencedContainer = "container:core-test-runner.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
