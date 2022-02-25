@@ -20,6 +20,10 @@
 			</array>
 		</dict>
 	</array>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
