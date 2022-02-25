@@ -19,5 +19,5 @@ appcenter test run xcuitest \
   --devices $DEVICES \
   --test-series $TEST_SERIES \
   --locale "en_US" \
-  --build-dir "DerivedData/Build/Products/Release-iphoneos/" \
+  --build-dir $APPCENTER_OUTPUT_DIRECTORY \
   --token $TOKEN
