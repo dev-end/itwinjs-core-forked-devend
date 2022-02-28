@@ -46,8 +46,9 @@ jobs:
 
       - script: 'npm run ios:build:test-runner'
         workingDirectory: core/backend
-        failOnStderr: true
         displayName: 'Build imodeljs-backend-test-app'
+        failOnStderr: true
+        condition: succeeded()
 
       - script: |
           rm -rf DerivedData
@@ -59,8 +60,8 @@ jobs:
             -derivedDataPath DerivedData \
             -allowProvisioningUpdates
         workingDirectory: core/backend/ios/core-test-runner
-        failOnStderr: true
         displayName: 'Build Xcode project for testing'
+        condition: succeeded()
 
       - script: |
           appcenter test run xcuitest
