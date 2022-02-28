@@ -64,12 +64,12 @@ jobs:
         condition: succeeded()
 
       - script: |
-          appcenter test run xcuitest
-            --app "$(AppCenterSlug)"
-            --devices "$(AppCenterDevices)"
-            --test-series "$(AppCenterTestSeries)"
-            --locale "en_US"
-            --build-dir DerivedData/Build/Products/Release-iphoneos/
+          appcenter test run xcuitest \
+            --app "$(AppCenterSlug)" \
+            --devices "$(AppCenterDevices)" \
+            --test-series "$(AppCenterTestSeries)" \
+            --locale "en_US" \
+            --build-dir DerivedData/Build/Products/Release-iphoneos/ \
             --token "$(AppCenterToken)"
         workingDirectory: core/backend/ios/core-test-runner
         failOnStderr: true
