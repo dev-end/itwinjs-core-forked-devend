@@ -14,13 +14,13 @@ jobs:
       - task: InstallAppleProvisioningProfile@1
         displayName: 'Install an Apple provisioning profile'
         inputs:
-          provProfileSecureFile: '{{ variables.ProvisioningProfileSecureFile }}'
+          provProfileSecureFile: '$(ProvisioningProfileSecureFile)'
 
       - task: InstallAppleCertificate@2
         displayName: 'Install an Apple certificate'
         inputs:
-          certSecureFile: '{{ variables.CertificateSecureFile }}'
-          certPwd: '{{ variables.CertificatePassword }}'
+          certSecureFile: '$(CertificateSecureFile)'
+          certPwd: '$(CertificatePassword)'
           setUpPartitionIdACLForPrivateKey: false
 
       - checkout: self
@@ -64,12 +64,12 @@ jobs:
 
       - script: |
           appcenter test run xcuitest
-            --app "{{ variables.AppCenterSlug }}"
-            --devices "{{ variables.AppCenterDevices }}"
-            --test-series "{{ variables.AppCenterTestSeries }}"
+            --app "$(AppCenterSlug)"
+            --devices "$(AppCenterDevices)"
+            --test-series "$(AppCenterTestSeries)"
             --locale "en_US"
             --build-dir DerivedData/Build/Products/Release-iphoneos/
-            --token "{{ variables.AppCenterToken }}"
+            --token "$(AppCenterToken)"
         workingDirectory: core/backend/ios/core-test-runner
         failOnStderr: true
         displayName: 'Run App Center tests'
