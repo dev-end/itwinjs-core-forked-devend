@@ -21,8 +21,9 @@ class ViewController: UIViewController, WKUIDelegate, WKNavigationDelegate, UIDo
         let mainPath = bundlePath.appending ("/Assets/main.js")
         let main = URL(fileURLWithPath: mainPath)
         let client = MobileAuthorizationClient(viewController: self)
+        print("(ios): Running tests.")
         host.loadBackend(main, withAuthClient: client, withInspect: true) { (numFailed: UInt32) in
-            print("Finished running tests.")
+            print("(ios): Finished running tests.")
             exit(Int32(numFailed))
         }
     }
