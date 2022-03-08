@@ -12,10 +12,10 @@ class ViewController: ObservableObject {
     private let logger = Logger(subsystem: "com.bentley.core-test-runner", category: "tests")
     private var numFailed: Int32 = -1
     @Published var testsFinished = false
-    
+
     func runTests() {
         let semaphore = DispatchSemaphore(value: 0)
-        
+
         let host = IModelJsHost.sharedInstance()
         let bundlePath = Bundle.main.bundlePath
         let mainPath = bundlePath.appending("/Assets/main.js")
@@ -26,13 +26,13 @@ class ViewController: ObservableObject {
             self.numFailed = Int32(numFailed)
             semaphore.signal()
         }
-        
+
         let result = semaphore.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(60 * 30))
-        
+
         switch result {
         case .timedOut:
             logger.log("(ios): Tests timed out.")
-            
+
         case .success:
             logger.log("(ios): Finished running tests.")
             let testOutputPath = bundlePath.appending("/Assets/junit_results.xml")
@@ -41,7 +41,7 @@ class ViewController: ObservableObject {
                 logger.log("(ios): Test results not found. Path: \(testOutputPath)")
             }
         }
-        
+
         testsFinished = true
     }
 }
