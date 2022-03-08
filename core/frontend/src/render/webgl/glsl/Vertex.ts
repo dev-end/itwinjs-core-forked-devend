@@ -14,7 +14,7 @@ import { Pass, TextureUnit } from "../RenderFlags";
 import { IsInstanced } from "../TechniqueFlags";
 import { VariableType, VertexShaderBuilder } from "../ShaderBuilder";
 import { System } from "../System";
-import { decodeFloat32, decodeUint16, decodeUint24 } from "./Decode";
+import { decode3Float32, decodeUint16, decodeUint24 } from "./Decode";
 import { addInstanceOverrides } from "./Instancing";
 import { addLookupTable } from "./LookupTable";
 
@@ -41,7 +41,25 @@ vec4 unquantizeVertexPosition(vec3 encodedIndex, vec3 origin, vec3 scale) {
     return unquantizePosition(qpos, origin, scale);
   }
 
-  return vec4(decodeFloat32(g_vertLutData[0]), decodeFloat32(g_vertLutData[1]), decodeFloat32(g_vertLutData[2]), 1.0);
+  // after reading in the data to effectively 3 x 4, need to transpose to 4 x 3 (with .w unused)
+  // to do this, swap w with different positions on read, so don't need temp vars for transposing
+  // pf[0].x, pf[1].y, pf[2].z will already be in correct position
+  // pf[3].xyz will be filled with what was originally in .w
+  vec4 pf[4];
+  pf[0] = g_vertLutData[0].xwzy; // swap y and w
+  pf[1] = g_vertLutData[1].xywz; // swap z and w
+  pf[2] = g_vertLutData[2].wyzx; // swap x and w
+  pf[3].x = pf[0].y;  // actually w
+  pf[0].y = pf[1].x;  pf[1].x = pf[0].w;  // actually y
+  pf[3].z = pf[2].x;  // actually w
+  pf[2].x = pf[0].z;  pf[0].z = pf[2].w;  // actually x
+  pf[3].y = pf[1].z;  // actually w
+  pf[1].z = pf[2].y;  pf[2].y = pf[1].w;  // actually z
+
+  vec4 position;
+  position.xyz = decode3Float32(pf);
+  position.w = 1.0;
+  return position;
 }
 `;
 
@@ -164,7 +182,7 @@ function addPositionFromLUT(vert: VertexShaderBuilder) {
 
   vert.addFunction(decodeUint24);
   vert.addFunction(decodeUint16);
-  vert.addFunction(decodeFloat32);
+  vert.addFunction(decode3Float32);
   vert.addFunction(unquantizeVertexPositionFromLUT);
 
   vert.addUniform("u_vertLUT", VariableType.Sampler2D, (prog) => {

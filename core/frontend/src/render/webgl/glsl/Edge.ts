@@ -34,11 +34,25 @@ const computeOtherPos = `
     vec3 qpos = vec3(decodeUInt16(enc1.xy), decodeUInt16(enc1.zw), decodeUInt16(enc2.xy));
     g_otherPos = unquantizePosition(qpos, u_qOrigin, u_qScale);
   } else {
-    for (int i = 0; i < 3; i++) {
-      g_otherPos[i] = decodeFloat32(floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5));
-      tc.x += g_vert_stepX;
-    }
+    // after reading in the data to effectively 3 x 4, need to transpose to 4 x 3 (with .w unused)
+    // to do this, swap w with different positions on read, so don't need temp vars for transposing
+    // pf[0].x, pf[1].y, pf[2].z will already be in correct position
+    // pf[3].xyz will be filled with what was originally in .w
+    vec4 pf[4];
+    pf[0] = floor(TEXTURE(u_vertLUT, tc).xwzy * 255.0 + 0.5); // swap y and w
+    tc.x += g_vert_stepX;
+    pf[1] = floor(TEXTURE(u_vertLUT, tc).xywz * 255.0 + 0.5); // swap z and w
+    tc.x += g_vert_stepX;
+    pf[2] = floor(TEXTURE(u_vertLUT, tc).wyzx * 255.0 + 0.5); // swap x and w
 
+    pf[3].x = pf[0].y;  // actually w
+    pf[0].y = pf[1].x;  pf[1].x = pf[0].w;  // actually y
+    pf[3].z = pf[2].x;  // actually w
+    pf[2].x = pf[0].z;  pf[0].z = pf[2].w;  // actually x
+    pf[3].y = pf[1].z;  // actually w
+    pf[1].z = pf[2].y;  pf[2].y = pf[1].w;  // actually z
+
+    g_otherPos.xyz = decode3Float32(pf);
     g_otherPos.w = 1.0;
   }
 `;
