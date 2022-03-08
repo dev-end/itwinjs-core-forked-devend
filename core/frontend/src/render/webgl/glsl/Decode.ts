@@ -112,7 +112,7 @@ export const decode3Float32 = `
 vec3 decode3Float32(vec4 packedFloat[4]) {
   vec3 sign = 1.0 - step(128.0, packedFloat[3].xyz) * 2.0;
   vec3 exponent = 2.0 * mod(packedFloat[3].xyz, 128.0) + step(128.0, packedFloat[2].xyz) - 127.0;
-  vec3 zeroFlag = step(-126.0, exponent);
+  vec3 zeroFlag = vec3(notEqual(vec3(-127.0), exponent));
   vec3 mantissa = mod(packedFloat[2].xyz, 128.0) * 65536.0 + packedFloat[1].xyz * 256.0 + packedFloat[0].xyz + float(0x800000);
   vec3 result = sign * exp2(exponent - 23.0) * mantissa * zeroFlag;
   return result;
