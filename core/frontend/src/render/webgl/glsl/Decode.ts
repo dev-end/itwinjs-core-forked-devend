@@ -105,14 +105,14 @@ float decodeFloat32(vec4 packedFloat) {
 `;
 
 export const decode3Float32 = `
-// This expects an array of 4 vec3s, where each vec3 contains a slice of all 3 of the packed floats
+// This expects an array of 4 vec4s, where each vec4 contains a slice of all 3 of the packed floats in .xyz
 // pf0 is in [0].x, pf1 is in [0].y, and pf2 in [0].z
 // e.g.: packedFloat[0] = vec3(pf0.x, pf1.x, pf2.x)
 // likewise .y info is in [1], .z in [2], and .w in [3]
 vec3 decode3Float32(vec4 packedFloat[4]) {
-  vec3 sign = 1.0 - vec3(lessThanEqual(vec3(128.0, 128.0, 128.0), packedFloat[3].xyz)) * 2.0;
+  vec3 sign = 1.0 - step(128.0, packedFloat[3].xyz) * 2.0;
   vec3 exponent = 2.0 * mod(packedFloat[3].xyz, 128.0) + step(128.0, packedFloat[2].xyz) - 127.0;
-  vec3 zeroFlag = vec3(equal(vec3(-127.0, -127.0, -127.0), exponent));
+  vec3 zeroFlag = step(-126.0, exponent);
   vec3 mantissa = mod(packedFloat[2].xyz, 128.0) * 65536.0 + packedFloat[1].xyz * 256.0 + packedFloat[0].xyz + float(0x800000);
   vec3 result = sign * exp2(exponent - 23.0) * mantissa * zeroFlag;
   return result;
