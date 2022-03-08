@@ -1,51 +1,48 @@
 /*---------------------------------------------------------------------------------------------
-* Copyright (c) Bentley Systems, Incorporated. All rights reserved.
-* See LICENSE.md in the project root for license terms and full copyright notice.
-*--------------------------------------------------------------------------------------------*/
+ * Copyright (c) Bentley Systems, Incorporated. All rights reserved.
+ * See LICENSE.md in the project root for license terms and full copyright notice.
+ *--------------------------------------------------------------------------------------------*/
 
-import UIKit
+import Foundation
 import os
 
 import IModelJsNative
 
-class ViewController: UIViewController, WKUIDelegate, WKNavigationDelegate, UIDocumentPickerDelegate {
-    private var webView : WKWebView? = nil
+class ViewController: ObservableObject {
     private let logger = Logger(subsystem: "com.bentley.core-test-runner", category: "tests")
     private var numFailed: Int32 = -1
-    private var testsFinished = false
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        runTests()
-    }
-
-    private func runTests () {
+    @Published var testsFinished = false
+    
+    func runTests() {
+        let semaphore = DispatchSemaphore(value: 0)
         
         let host = IModelJsHost.sharedInstance()
         let bundlePath = Bundle.main.bundlePath
         let mainPath = bundlePath.appending("/Assets/main.js")
         let main = URL(fileURLWithPath: mainPath)
-        let client = MobileAuthorizationClient(viewController: self)
         print("(ios): Running tests.")
         logger.log("(ios)(logger): Running tests.")
-        host.loadBackend(main, withAuthClient: client, withInspect: true) { [self] (numFailed: UInt32) in
+        host.loadBackend(main) { [self] (numFailed: UInt32) in
             self.numFailed = Int32(numFailed)
-            self.testsFinished = true
+            semaphore.signal()
         }
         
-        while !testsFinished {
+        let result = semaphore.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(60 * 30))
+        
+        switch result {
+        case .timedOut:
+            logger.log("(ios): Tests timed out.")
+            
+        case .success:
+            logger.log("(ios): Finished running tests.")
+            let testOutputPath = bundlePath.appending("/Assets/junit_results.xml")
+            let fileManager = FileManager.default
+            if !fileManager.fileExists(atPath: testOutputPath) {
+                logger.log("(ios): Test results not found. Path: \(testOutputPath)")
+            }
         }
         
-        logger.log("(ios)(logger): Finished running tests (2).")
-        NSLog("(ios)(nslog): Finished running tests (2).")
-        
-        let testOutputPath = bundlePath.appending("/Assets/junit_results.xml")
-        let fileManager = FileManager.default
-        if !fileManager.fileExists(atPath: testOutputPath) {
-            print("(ios): Test results not found. Path: \(testOutputPath)")
-        }
-        
-        exit(numFailed)
+        testsFinished = true
     }
 }
 
