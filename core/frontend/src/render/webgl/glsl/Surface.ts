@@ -11,7 +11,7 @@ import { AttributeMap } from "../AttributeMap";
 import { Material } from "../Material";
 import { Pass, SurfaceBitIndex, SurfaceFlags, TextureUnit } from "../RenderFlags";
 import {
-  FragmentShaderBuilder, FragmentShaderComponent, ProgramBuilder, ShaderBuilder, VariableType, VertexShaderComponent,
+  FragmentShaderBuilder, FragmentShaderComponent, ProgramBuilder, ShaderBuilder, ShaderBuilderFlags, VariableType, VertexShaderComponent,
 } from "../ShaderBuilder";
 import { System } from "../System";
 import { FeatureMode, IsAnimated, IsClassified, IsInstanced, IsShadowable, IsThematic, TechniqueFlags } from "../TechniqueFlags";
@@ -213,10 +213,9 @@ const computePositionPostlude = `
   return u_proj * pos;
 `;
 
-function createCommon(isInstanced: IsInstanced, animated: IsAnimated, shadowable: IsShadowable, isThematic: IsThematic, isHiliter: boolean): ProgramBuilder {
-  const instanced = IsInstanced.Yes === isInstanced;
-  const attrMap = AttributeMap.findAttributeMap(TechniqueId.Surface, instanced);
-  const builder = new ProgramBuilder(attrMap, { maxRgbaPerVertex: 6, instanced });
+function createCommon(instanced: IsInstanced, animated: IsAnimated, shadowable: IsShadowable, isThematic: IsThematic, isHiliter: boolean): ProgramBuilder {
+  const attrMap = AttributeMap.findAttributeMap(TechniqueId.Surface, IsInstanced.Yes === instanced);
+  const builder = new ProgramBuilder(attrMap, instanced ? ShaderBuilderFlags.InstancedVertexTable : ShaderBuilderFlags.VertexTable);
   const vert = builder.vert;
 
   if (animated)
@@ -354,16 +353,11 @@ vec3 octDecodeNormal(vec2 e) {
 `;
 
 const computeNormal = `
-  if (!u_surfaceFlags[kSurfaceBitIndex_HasNormals])
-    return vec3(0.0);
-
-  vec2 normal;
-  if (u_surfaceFlags[kSurfaceBitIndex_HasColorAndNormal])
-    normal = g_usesQuantizedPosition ? g_vertLutData[3].xy : g_vertLutData[4].zw;
-  else
-    normal = g_usesQuantizedPosition ? g_vertLutData[1].zw : g_vertLutData[5].xy;
-
-  return normalize(MAT_NORM * octDecodeNormal(normal));
+  vec2 tc = g_vertexBaseCoords;
+  tc.x += 3.0 * g_vert_stepX;
+  vec4 enc = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+  vec2 normal = u_surfaceFlags[kSurfaceBitIndex_HasColorAndNormal] ? enc.xy : g_vertexData2;
+  return u_surfaceFlags[kSurfaceBitIndex_HasNormals] ? normalize(MAT_NORM * octDecodeNormal(normal)) : vec3(0.0);
 `;
 
 const computeAnimatedNormal = `
@@ -376,7 +370,9 @@ const applyBackgroundColor = `
 `;
 
 const computeTexCoord = `
-  vec4 rgba = g_usesQuantizedPosition ? g_vertLutData[3] : g_vertLutData[4];
+  vec2 tc = g_vertexBaseCoords;
+  tc.x += 3.0 * g_vert_stepX;
+  vec4 rgba = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
   vec2 qcoords = vec2(decodeUInt16(rgba.xy), decodeUInt16(rgba.zw));
   return chooseVec2WithBitFlag(vec2(0.0), unquantize2d(qcoords, u_qTexCoordParams), surfaceFlags, kSurfaceBit_HasTexture);
 `;
@@ -443,15 +439,20 @@ function addNormal(builder: ProgramBuilder, instanced: IsInstanced, animated: Is
 
   builder.vert.addFunction(octDecodeNormal);
   addChooseWithBitFlagFunctions(builder.vert);
-  builder.vert.addFunction("vec3 computeSurfaceNormal()", computeNormal);
-  builder.addFunctionComputedVarying("v_n", VariableType.Vec3, "computeLightingNormal", animated ? computeAnimatedNormal : "return computeSurfaceNormal();");
+  builder.addFunctionComputedVarying("v_n", VariableType.Vec3, "computeLightingNormal", animated ? computeAnimatedNormal : computeNormal);
 
   // Set to true to colorize surfaces based on normals (in world space).
   // You must also set checkMaxVarying to false in ProgramBuilder.buildProgram to avoid assertions, if using a non-optimized build.
   const debugNormals = false;
   if (debugNormals) {
     builder.frag.set(FragmentShaderComponent.ApplyDebugColor, "return vec4(vec3(v_normal / 2.0 + 0.5), baseColor.a);");
-    builder.addInlineComputedVarying("v_normal", VariableType.Vec3, "v_normal = computeSurfaceNormal();");
+    builder.addFunctionComputedVarying("v_normal", VariableType.Vec3, "computeDebugNormal", `
+      vec2 tc = g_vertexBaseCoords;
+      tc.x += 3.0 * g_vert_stepX;
+      vec4 enc = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+      vec2 normal = u_surfaceFlags[kSurfaceBitIndex_HasColorAndNormal] ? enc.xy : g_vertexData2;
+      return u_surfaceFlags[kSurfaceBitIndex_HasNormals] ? normalize(octDecodeNormal(normal)) : vec3(0.0);
+    `);
   }
 }
 
