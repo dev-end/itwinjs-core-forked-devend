@@ -46,7 +46,7 @@ vec4 unquantizeVertexPosition(vec3 encodedIndex, vec3 origin, vec3 scale) {
     tc.x += g_vert_stepX;
     vec4 enc2 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
     vec3 qpos = vec3(decodeUInt16(enc1.xy), decodeUInt16(enc1.zw), decodeUInt16(enc2.xy));
-    g_vertexData2 = enc2.zw;
+    g_vertexData1zw = enc2.zw;
     return unquantizePosition(qpos, origin, scale);
 #endif
   }
@@ -198,7 +198,7 @@ const scratchLutParams = new Float32Array(4);
 function addPositionFromLUT(vert: VertexShaderBuilder) {
   vert.addGlobal("g_vertexLUTIndex", VariableType.Float);
   vert.addGlobal("g_vertexBaseCoords", VariableType.Vec2);
-  vert.addGlobal("g_vertexData2", VariableType.Vec2);
+  vert.addGlobal("g_vertexData1zw", VariableType.Vec2);
 
   vert.addFunction(decodeUint24);
   vert.addFunction(decodeUint16);
@@ -229,7 +229,7 @@ function addPositionFromLUT(vert: VertexShaderBuilder) {
 
   assert(undefined !== vert.maxRgbaPerVertex);
   const maxRgbaPerVertex = vert.maxRgbaPerVertex.toString();
-  vert.addGlobal(`g_vertLutData[${maxRgbaPerVertex}]`, VariableType.Vec4);
+  // vert.addGlobal(`g_vertLutData[${maxRgbaPerVertex}]`, VariableType.Vec4);
   vert.addGlobal("g_usesQuantizedPosition", VariableType.Boolean);
 
   // Read the vertex data from the vertex table up front. If using WebGL 2, only read the number of RGBA values we actually need for this vertex table.
