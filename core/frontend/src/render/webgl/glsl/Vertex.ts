@@ -35,10 +35,20 @@ vec4 unquantizeVertexPosition(vec3 pos, vec3 origin, vec3 scale) { return unquan
 const unquantizeVertexPositionFromLUT = `
 vec4 unquantizeVertexPosition(vec3 encodedIndex, vec3 origin, vec3 scale) {
   if (g_usesQuantizedPosition) {
+#if 0
     vec4 enc1 = g_vertLutData[0];
     vec4 enc2 = g_vertLutData[1];
     vec3 qpos = vec3(decodeUInt16(enc1.xy), decodeUInt16(enc1.zw), decodeUInt16(enc2.xy));
     return unquantizePosition(qpos, origin, scale);
+#else
+    vec2 tc = g_vertexBaseCoords;
+    vec4 enc1 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+    tc.x += g_vert_stepX;
+    vec4 enc2 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+    vec3 qpos = vec3(decodeUInt16(enc1.xy), decodeUInt16(enc1.zw), decodeUInt16(enc2.xy));
+    g_vertexData2 = enc2.zw;
+    return unquantizePosition(qpos, origin, scale);
+#endif
   }
 
   // after reading in the data to effectively 3 x 4, need to transpose to 4 x 3 (with .w unused)
@@ -46,9 +56,18 @@ vec4 unquantizeVertexPosition(vec3 encodedIndex, vec3 origin, vec3 scale) {
   // pf[0].x, pf[1].y, pf[2].z will already be in correct position
   // pf[3].xyz will be filled with what was originally in .w
   vec4 pf[4];
+#if 0
   pf[0] = g_vertLutData[0].xwzy; // swap y and w
   pf[1] = g_vertLutData[1].xywz; // swap z and w
   pf[2] = g_vertLutData[2].wyzx; // swap x and w
+#else
+  vec2 tc = g_vertexBaseCoords;
+  pf[0] = floor(TEXTURE(u_vertLUT, tc).xwzy * 255.0 + 0.5); // swap y and w
+  tc.x += g_vert_stepX;
+  pf[1] = floor(TEXTURE(u_vertLUT, tc).xywz * 255.0 + 0.5); // swap z and w
+  tc.x += g_vert_stepX;
+  pf[2] = floor(TEXTURE(u_vertLUT, tc).wyzx * 255.0 + 0.5); // swap x and w
+#endif
   pf[3].x = pf[0].y;  // actually w
   pf[0].y = pf[1].x;  pf[1].x = pf[0].w;  // actually y
   pf[3].z = pf[2].x;  // actually w
@@ -179,6 +198,7 @@ const scratchLutParams = new Float32Array(4);
 function addPositionFromLUT(vert: VertexShaderBuilder) {
   vert.addGlobal("g_vertexLUTIndex", VariableType.Float);
   vert.addGlobal("g_vertexBaseCoords", VariableType.Vec2);
+  vert.addGlobal("g_vertexData2", VariableType.Vec2);
 
   vert.addFunction(decodeUint24);
   vert.addFunction(decodeUint16);
@@ -216,11 +236,13 @@ function addPositionFromLUT(vert: VertexShaderBuilder) {
   const loopStart = `for (int i = 0; i < ${System.instance.capabilities.isWebGL2 ? "int(u_vertParams.z)" : maxRgbaPerVertex}; i++)`;
   vert.addInitializer(`
     g_usesQuantizedPosition = u_qScale.x >= 0.0;
+#if 0
     vec2 tc = g_vertexBaseCoords;
     ${loopStart} {
       g_vertLutData[i] = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
       tc.x += g_vert_stepX;
     }
+#endif
   `);
 }
 
@@ -314,7 +336,13 @@ export function addFeatureAndMaterialLookup(vert: VertexShaderBuilder): void {
     return;
 
   const computeFeatureAndMaterialIndex = `
+#if 0
     g_featureAndMaterialIndex = g_usesQuantizedPosition ? g_vertLutData[2] : g_vertLutData[3];
+#else
+    vec2 tc = g_vertexBaseCoords;
+    tc.x += g_vert_stepX * (g_usesQuantizedPosition ? 2.0 : 3.0);
+    g_featureAndMaterialIndex = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+#endif
   `;
 
   vert.addGlobal("g_featureAndMaterialIndex", VariableType.Vec4);
