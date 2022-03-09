@@ -76,6 +76,6 @@ jobs:
         displayName: 'Run App Center tests'
 
       - script: node ./ios/scripts/processAppCenterLogs.js "$(AppCenterOwner)" "$(AppCenterApp)" "$(AppCenterToken)"
-          workingDirectory: core/backend
-          failOnStderr: true
-          displayName: 'Process Logs'
+        workingDirectory: core/backend
+        failOnStderr: true
+        displayName: 'Process Logs'
