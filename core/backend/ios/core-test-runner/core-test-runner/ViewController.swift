@@ -10,13 +10,14 @@ import IModelJsNative
 
 class ViewController: ObservableObject {
     private let logger = Logger(subsystem: "com.bentley.core-test-runner", category: "tests")
-    private var numFailed: Int32 = -1
     @Published var testsFinished = false
     
     func runTests() {
-        let testResultsPath = "\(NSTemporaryDirectory())/mocha_test_results.xml"
-        print(testResultsPath)
-        setenv("TEST_RESULTS_PATH", testResultsPath, 1)
+        var testResultsUrl = URL(fileURLWithPath: NSTemporaryDirectory())
+        testResultsUrl.appendPathComponent("mocha_test_results.xml")
+        
+        print(testResultsUrl.path)
+        setenv("TEST_RESULTS_PATH", "mocha_test_results.xml", 1)
         
         let host = IModelJsHost.sharedInstance()
         let bundlePath = Bundle.main.bundlePath
@@ -24,27 +25,21 @@ class ViewController: ObservableObject {
         let main = URL(fileURLWithPath: mainPath)
         logger.log("(ios): Running tests.")
         host.loadBackend(main) { [self] (numFailed: UInt32) in
-            self.numFailed = Int32(numFailed)
             logger.log("(ios): Finished Running tests. \(numFailed) tests failed.")
+            
+            do {
+                let data = try String(contentsOfFile: testResultsUrl.path, encoding: .utf8)
+                for line in data.components(separatedBy: .newlines) {
+                    logger.log("[Mocha_Result_XML]: \(line)")
+                }
+            } catch {
+                logger.log("Failed to read mocha test results.")
+                print(error)
+            }
+            
+            // Indicate via UI that the tests have finished.
             self.testsFinished = true
         }
-        
-//        let result = semaphore.wait(timeout: DispatchTime.now() + DispatchTimeInterval.seconds(60 * 30))
-//
-//        switch result {
-//        case .timedOut:
-//            logger.log("(ios): Tests timed out.")
-//
-//        case .success:
-//            logger.log("(ios): Finished running tests.")
-//            let testOutputPath = bundlePath.appending("/Assets/junit_results.xml")
-//            let fileManager = FileManager.default
-//            if !fileManager.fileExists(atPath: testOutputPath) {
-//                logger.log("(ios): Test results not found. Path: \(testOutputPath)")
-//            }
-//        }
-//
-//        testsFinished = true
     }
 }
 

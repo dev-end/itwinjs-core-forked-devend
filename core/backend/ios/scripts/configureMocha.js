@@ -8,7 +8,9 @@ global.mocha = new Mocha();
 
 const BentleyMochaReporter = require("@itwin/build-tools/mocha-reporter");
 
+console.log(process.env.TEST_RESULTS_PATH)
+
 mocha.ui("bdd");
 mocha.suite.emit("pre-require", global, null, mocha);
 mocha.timeout(9999999);
-mocha.reporter(BentleyMochaReporter, { "mochaFile": process.env.TEST_RESULTS_PATH });
+mocha.reporter(BentleyMochaReporter, { mochaFile: process.env.TEST_RESULTS_PATH });
