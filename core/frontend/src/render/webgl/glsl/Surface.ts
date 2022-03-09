@@ -367,7 +367,7 @@ const computeNormal = `
   return normalize(MAT_NORM * octDecodeNormal(normal));
 #else
   vec2 tc = g_vertexBaseCoords;
-  tc.x += g_vert_stepX + (u_surfaceFlags[kSurfaceBitIndex_HasColorAndNormal] ?
+  tc.x += g_vert_stepX * (u_surfaceFlags[kSurfaceBitIndex_HasColorAndNormal] ?
                           (g_usesQuantizedPosition ? 3.0 : 4.0) : (g_usesQuantizedPosition ? 1.0 : 5.0));
   vec4 enc = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
   if (u_surfaceFlags[kSurfaceBitIndex_HasColorAndNormal])
