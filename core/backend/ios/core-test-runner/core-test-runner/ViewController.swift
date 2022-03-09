@@ -14,6 +14,10 @@ class ViewController: ObservableObject {
     @Published var testsFinished = false
     
     func runTests() {
+        let testResultsPath = "\(NSTemporaryDirectory())/mocha_test_results.xml"
+        print(testResultsPath)
+        setenv("TEST_RESULTS_PATH", testResultsPath, 1)
+        
         let host = IModelJsHost.sharedInstance()
         let bundlePath = Bundle.main.bundlePath
         let mainPath = bundlePath.appending("/Assets/main.js")
