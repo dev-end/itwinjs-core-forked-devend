@@ -24,7 +24,7 @@ jobs:
       matrix:
         Linux_node_14_x:
           imageName: ubuntu-latest
-          nodeVersion: 14.16.0
+          nodeVersion: 14.15.0
     pool:
       vmImage: $(imageName)
     steps:
