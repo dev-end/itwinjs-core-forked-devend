@@ -20,44 +20,11 @@ variables:
 jobs:
   - job: Integration_Tests_Full
     strategy:
-      maxParallel: 3
+      maxParallel: 1
       matrix:
-        Linux_node_12_7:
-          imageName: ubuntu-latest
-          nodeVersion: 12.17.0
-        Linux_node_12_x:
-          imageName: ubuntu-latest
-          nodeVersion: 12.x
         Linux_node_14_x:
           imageName: ubuntu-latest
-          nodeVersion: 14.x
-        # linux_node_16_x:
-        #   imageName: ubuntu-latest
-        #   nodeVersion: 16.x
-        Windows_node_12_7:
-          imageName: windows-latest
-          nodeVersion: 12.17.0
-        Windows_node_12_x:
-          imageName: windows-latest
-          nodeVersion: 12.x
-        Windows_node_14_x:
-          imageName: windows-latest
-          nodeVersion: 14.x
-        # Windows_node_16_x:
-        #   imageName: windows-latest
-        #   nodeVersion: 16.x
-        MacOS_node_12_7:
-          imageName: macos-latest
-          nodeVersion: 12.17.0
-        MacOS_node_12_x:
-          imageName: macos-latest
-          nodeVersion: 12.x
-        MacOS_node_14_x:
-          imageName: macos-latest
-          nodeVersion: 14.x
-        # MacOS_node_16_x:
-        #   imageName: macos-latest
-        #   nodeVersion: 16.x
+          nodeVersion: 14.16.0
     pool:
       vmImage: $(imageName)
     steps:
