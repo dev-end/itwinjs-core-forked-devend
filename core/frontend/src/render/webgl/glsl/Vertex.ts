@@ -51,10 +51,6 @@ vec4 unquantizeVertexPosition(vec3 encodedIndex, vec3 origin, vec3 scale) {
 #endif
   }
 
-  // after reading in the data to effectively 3 x 4, need to transpose to 4 x 3 (with .w unused)
-  // to do this, swap w with different positions on read, so don't need temp vars for transposing
-  // pf[0].x, pf[1].y, pf[2].z will already be in correct position
-  // pf[3].xyz will be filled with what was originally in .w
   vec4 pf[4];
 #if 0
   pf[0] = g_vertLutData[0].xwzy; // swap y and w
@@ -62,19 +58,15 @@ vec4 unquantizeVertexPosition(vec3 encodedIndex, vec3 origin, vec3 scale) {
   pf[2] = g_vertLutData[2].wyzx; // swap x and w
 #else
   vec2 tc = g_vertexBaseCoords;
-  pf[0] = floor(TEXTURE(u_vertLUT, tc).xwzy * 255.0 + 0.5); // swap y and w
+  pf[0] = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
   tc.x += g_vert_stepX;
-  pf[1] = floor(TEXTURE(u_vertLUT, tc).xywz * 255.0 + 0.5); // swap z and w
+  pf[1] = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
   tc.x += g_vert_stepX;
-  pf[2] = floor(TEXTURE(u_vertLUT, tc).wyzx * 255.0 + 0.5); // swap x and w
+  pf[2] = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+  tc.x += g_vert_stepX;
+  pf[3] = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
 #endif
-  pf[3].x = pf[0].y;  // actually w
-  pf[0].y = pf[1].x;  pf[1].x = pf[0].w;  // actually y
-  pf[3].z = pf[2].x;  // actually w
-  pf[2].x = pf[0].z;  pf[0].z = pf[2].w;  // actually x
-  pf[3].y = pf[1].z;  // actually w
-  pf[1].z = pf[2].y;  pf[2].y = pf[1].w;  // actually z
-
+  g_featureAndMaterialIndex = vec4(pf[0].w, pf[1].w, pf[2].w, pf[3].w);
   vec4 position;
   position.xyz = decode3Float32(pf);
   position.w = 1.0;
@@ -199,6 +191,7 @@ function addPositionFromLUT(vert: VertexShaderBuilder) {
   vert.addGlobal("g_vertexLUTIndex", VariableType.Float);
   vert.addGlobal("g_vertexBaseCoords", VariableType.Vec2);
   vert.addGlobal("g_vertexData1zw", VariableType.Vec2);
+  vert.addGlobal("g_featureAndMaterialIndex", VariableType.Vec4);
 
   vert.addFunction(decodeUint24);
   vert.addFunction(decodeUint16);
@@ -339,9 +332,11 @@ export function addFeatureAndMaterialLookup(vert: VertexShaderBuilder): void {
 #if 0
     g_featureAndMaterialIndex = g_usesQuantizedPosition ? g_vertLutData[2] : g_vertLutData[3];
 #else
-    vec2 tc = g_vertexBaseCoords;
-    tc.x += g_vert_stepX * (g_usesQuantizedPosition ? 2.0 : 3.0);
-    g_featureAndMaterialIndex = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+    if (g_usesQuantizedPosition) {
+      vec2 tc = g_vertexBaseCoords;
+      tc.x += g_vert_stepX * 2.0;
+      g_featureAndMaterialIndex = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+    }
 #endif
   `;
 
