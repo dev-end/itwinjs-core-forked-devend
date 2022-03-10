@@ -35,8 +35,8 @@ vec4 unquantizeVertexPosition(vec3 pos, vec3 origin, vec3 scale) { return unquan
 const unquantizeVertexPositionFromLUT = `
 vec4 unquantizeVertexPosition(vec3 encodedIndex, vec3 origin, vec3 scale) {
   if (g_usesQuantizedPosition) {
-    vec4 enc1 = g_vertLutData[0];
-    vec4 enc2 = g_vertLutData[1];
+    vec4 enc1 = g_vertLutData0;
+    vec4 enc2 = g_vertLutData1;
     vec3 qpos = vec3(decodeUInt16(enc1.xy), decodeUInt16(enc1.zw), decodeUInt16(enc2.xy));
     return unquantizePosition(qpos, origin, scale);
   }
@@ -46,9 +46,9 @@ vec4 unquantizeVertexPosition(vec3 encodedIndex, vec3 origin, vec3 scale) {
   // pf[0].x, pf[1].y, pf[2].z will already be in correct position
   // pf[3].xyz will be filled with what was originally in .w
   vec4 pf[4];
-  pf[0] = g_vertLutData[0].xwzy; // swap y and w
-  pf[1] = g_vertLutData[1].xywz; // swap z and w
-  pf[2] = g_vertLutData[2].wyzx; // swap x and w
+  pf[0] = g_vertLutData0.xwzy; // swap y and w
+  pf[1] = g_vertLutData1.xywz; // swap z and w
+  pf[2] = g_vertLutData2.wyzx; // swap x and w
   pf[3].x = pf[0].y;  // actually w
   pf[0].y = pf[1].x;  pf[1].x = pf[0].w;  // actually y
   pf[3].z = pf[2].x;  // actually w
@@ -209,7 +209,13 @@ function addPositionFromLUT(vert: VertexShaderBuilder) {
 
   assert(undefined !== vert.maxRgbaPerVertex);
   const maxRgbaPerVertex = vert.maxRgbaPerVertex.toString();
-  vert.addGlobal(`g_vertLutData[${maxRgbaPerVertex}]`, VariableType.Vec4);
+  // vert.addGlobal(`g_vertLutData[${maxRgbaPerVertex}]`, VariableType.Vec4);
+  vert.addGlobal(`g_vertLutData0`, VariableType.Vec4);
+  vert.addGlobal(`g_vertLutData1`, VariableType.Vec4);
+  vert.addGlobal(`g_vertLutData2`, VariableType.Vec4);
+  vert.addGlobal(`g_vertLutData3`, VariableType.Vec4);
+  vert.addGlobal(`g_vertLutData4`, VariableType.Vec4);
+  vert.addGlobal(`g_vertLutData5`, VariableType.Vec4);
   vert.addGlobal("g_usesQuantizedPosition", VariableType.Boolean);
 
   // Read the vertex data from the vertex table up front. If using WebGL 2, only read the number of RGBA values we actually need for this vertex table.
@@ -217,10 +223,26 @@ function addPositionFromLUT(vert: VertexShaderBuilder) {
   vert.addInitializer(`
     g_usesQuantizedPosition = u_qScale.x >= 0.0;
     vec2 tc = g_vertexBaseCoords;
+#if 0
     ${loopStart} {
       g_vertLutData[i] = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
       tc.x += g_vert_stepX;
     }
+#else
+    g_vertLutData0 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+    tc.x += g_vert_stepX;
+    g_vertLutData1 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+    tc.x += g_vert_stepX;
+    g_vertLutData2 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+    tc.x += g_vert_stepX;
+    g_vertLutData3 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+    tc.x += g_vert_stepX;
+    g_vertLutData4 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+    if (5.0 < u_vertParams.z) {
+      tc.x += g_vert_stepX;
+      g_vertLutData5 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+    }
+#endif
   `);
 }
 
@@ -314,7 +336,7 @@ export function addFeatureAndMaterialLookup(vert: VertexShaderBuilder): void {
     return;
 
   const computeFeatureAndMaterialIndex = `
-    g_featureAndMaterialIndex = g_usesQuantizedPosition ? g_vertLutData[2] : g_vertLutData[3];
+    g_featureAndMaterialIndex = g_usesQuantizedPosition ? g_vertLutData2 : g_vertLutData3;
   `;
 
   vert.addGlobal("g_featureAndMaterialIndex", VariableType.Vec4);
