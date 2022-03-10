@@ -20,10 +20,13 @@ variables:
 jobs:
   - job: Integration_Tests_Full
     strategy:
-      maxParallel: 1
+      maxParallel: 2
       matrix:
         Linux_node_14_x:
           imageName: ubuntu-latest
+          nodeVersion: 14.15.0
+        MacOS_node_14_x:
+          imageName: macos-latest
           nodeVersion: 14.15.0
     pool:
       vmImage: $(imageName)
