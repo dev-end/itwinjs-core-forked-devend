@@ -216,15 +216,14 @@ vec4 decodePosition(vec3 baseIndex) {
     return unquantizePosition(qpos, u_qOrigin, u_qScale);
   }
 
-  vec4 pf[4];
-  pf[0] = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+  vec3 pf[4];
+  pf[0] = floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5);
   tc.x += g_vert_stepX;
-  pf[1] = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+  pf[1] = floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5);
   tc.x += g_vert_stepX;
-  pf[2] = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+  pf[2] = floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5);
   tc.x += g_vert_stepX;
-  pf[3] = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
-
+  pf[3] = floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5);
   vec4 position;
   position.xyz = decode3Float32(pf);
   position.w = 1.0;

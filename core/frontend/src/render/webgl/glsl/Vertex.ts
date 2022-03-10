@@ -51,22 +51,22 @@ vec4 unquantizeVertexPosition(vec3 encodedIndex, vec3 origin, vec3 scale) {
 #endif
   }
 
-  vec4 pf[4];
+  vec3 pf[4];
 #if 0
-  pf[0] = g_vertLutData[0].xwzy; // swap y and w
-  pf[1] = g_vertLutData[1].xywz; // swap z and w
-  pf[2] = g_vertLutData[2].wyzx; // swap x and w
+  pf[0] = g_vertLutData[0].xyz;
+  pf[1] = g_vertLutData[1].xyz;
+  pf[2] = g_vertLutData[2].xyz;
+  pf[3] = g_vertLutData[2].xyz;
 #else
   vec2 tc = g_vertexBaseCoords;
-  pf[0] = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+  pf[0] = floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5);
   tc.x += g_vert_stepX;
-  pf[1] = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+  pf[1] = floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5);
   tc.x += g_vert_stepX;
-  pf[2] = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+  pf[2] = floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5);
   tc.x += g_vert_stepX;
-  pf[3] = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+  pf[3] = floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5);
 #endif
-  g_featureAndMaterialIndex = vec4(pf[0].w, pf[1].w, pf[2].w, pf[3].w);
   vec4 position;
   position.xyz = decode3Float32(pf);
   position.w = 1.0;
@@ -191,7 +191,6 @@ function addPositionFromLUT(vert: VertexShaderBuilder) {
   vert.addGlobal("g_vertexLUTIndex", VariableType.Float);
   vert.addGlobal("g_vertexBaseCoords", VariableType.Vec2);
   vert.addGlobal("g_vertexData1zw", VariableType.Vec2);
-  vert.addGlobal("g_featureAndMaterialIndex", VariableType.Vec4);
 
   vert.addFunction(decodeUint24);
   vert.addFunction(decodeUint16);
@@ -336,6 +335,17 @@ export function addFeatureAndMaterialLookup(vert: VertexShaderBuilder): void {
       vec2 tc = g_vertexBaseCoords;
       tc.x += g_vert_stepX * 2.0;
       g_featureAndMaterialIndex = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+    } else {
+      vec4 featID;
+      vec2 tc = g_vertexBaseCoords;
+      featID.x = TEXTURE(u_vertLUT, tc).w;
+      tc.x += g_vert_stepX;
+      featID.y = TEXTURE(u_vertLUT, tc).w;
+      tc.x += g_vert_stepX;
+      featID.z = TEXTURE(u_vertLUT, tc).w;
+      tc.x += g_vert_stepX;
+      featID.w = TEXTURE(u_vertLUT, tc).w;
+      g_featureAndMaterialIndex = floor(featID * 255.0 + 0.5);
     }
 #endif
   `;
