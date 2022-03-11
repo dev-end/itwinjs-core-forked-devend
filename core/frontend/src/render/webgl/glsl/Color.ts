@@ -14,8 +14,8 @@ import { addInstanceColor } from "./Instancing";
 // NB: Color in color table has pre-multiplied alpha - revert it.
 const computeElementColor = `
   float colorTableStart = u_vertParams.z * u_vertParams.w; // num rgba per-vertex times num vertices
-#if 0
-  float colorIndex = decodeUInt16(g_usesQuantizedPosition ? g_vertLutData[1].zw : g_vertLutData[4].xy);
+#if 1
+  float colorIndex = decodeUInt16(g_usesQuantizedPosition ? g_vertLutData1.zw : g_vertLutData4.xy);
 #else
   vec2 cie;
   if (g_usesQuantizedPosition)
