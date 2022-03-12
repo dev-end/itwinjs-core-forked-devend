@@ -15,7 +15,7 @@ import { addInstanceColor } from "./Instancing";
 const computeElementColor = `
   float colorTableStart = u_vertParams.z * u_vertParams.w; // num rgba per-vertex times num vertices
 #if 1
-  float colorIndex = decodeUInt16(g_usesQuantizedPosition ? g_vertLutData1.zw : g_vertLutData4.xy);
+  float colorIndex = decodeUInt16(g_vertLutData1.zw);
 #else
   vec2 cie;
   if (g_usesQuantizedPosition)

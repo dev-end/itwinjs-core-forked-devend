@@ -359,11 +359,7 @@ const computeNormal = `
 
   vec2 normal;
 #if 1
-  if (u_surfaceFlags[kSurfaceBitIndex_HasColorAndNormal])
-    normal = g_usesQuantizedPosition ? g_vertLutData3.xy : g_vertLutData4.zw;
-  else
-    normal = g_usesQuantizedPosition ? g_vertLutData1.zw : g_vertLutData5.xy;
-
+  normal = (u_surfaceFlags[kSurfaceBitIndex_HasColorAndNormal]) ? g_vertLutData3.xy : g_vertLutData1.zw;
   return normalize(MAT_NORM * octDecodeNormal(normal));
 #else
   vec2 tc = g_vertexBaseCoords;
@@ -390,7 +386,7 @@ const applyBackgroundColor = `
 
 const computeTexCoord = `
 #if 1
-  vec4 rgba = g_usesQuantizedPosition ? g_vertLutData3 : g_vertLutData4;
+  vec4 rgba = g_vertLutData3;
 #else
   vec2 tc = g_vertexBaseCoords;
   tc.x += g_vert_stepX * (g_usesQuantizedPosition ? 3.0 : 4.0);
