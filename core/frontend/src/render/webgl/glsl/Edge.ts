@@ -34,15 +34,15 @@ const computeOtherPos = `
     vec3 qpos = vec3(decodeUInt16(enc1.xy), decodeUInt16(enc1.zw), decodeUInt16(enc2.xy));
     g_otherPos = unquantizePosition(qpos, u_qOrigin, u_qScale);
   } else {
-    vec3 pf[4];
-    pf[0] = floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5);
+    uvec3 vux = uvec3 (floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5));
     tc.x += g_vert_stepX;
-    pf[1] = floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5);
+    uvec3 vuy = uvec3 (floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5));
     tc.x += g_vert_stepX;
-    pf[2] = floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5);
+    uvec3 vuz = uvec3 (floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5));
     tc.x += g_vert_stepX;
-    pf[3] = floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5);
-    g_otherPos.xyz = decode3Float32(pf);
+    uvec3 vuw = uvec3 (floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5));
+    uvec3 u = (vuw << 24) | (vuz << 16) | (vuy << 8) | vux;
+    g_otherPos.xyz = uintBitsToFloat(u);
     g_otherPos.w = 1.0;
   }
 `;
