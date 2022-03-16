@@ -14,7 +14,15 @@ import { addInstanceColor } from "./Instancing";
 // NB: Color in color table has pre-multiplied alpha - revert it.
 const computeElementColor = `
   float colorTableStart = u_vertParams.z * u_vertParams.w; // num rgba per-vertex times num vertices
-  float colorIndex = decodeUInt16(g_usesQuantizedPosition ? g_vertLutData1.zw : g_vertLutData4.xy);
+  vec2 cie;
+  if (g_usesQuantizedPosition)
+    cie = g_vertexData1zw;
+  else {
+    vec2 tc = g_vertexBaseCoords;
+    tc.x += g_vert_stepX * 4.0;
+    cie = floor(TEXTURE(u_vertLUT, tc).xy * 255.0 + 0.5);
+  }
+  float colorIndex = decodeUInt16(cie);
   vec2 tc = computeLUTCoords(colorTableStart+colorIndex, u_vertParams.xy, g_vert_center, 1.0);
   vec4 lutColor = TEXTURE(u_vertLUT, tc);
   lutColor.rgb /= max(0.0001, lutColor.a);
