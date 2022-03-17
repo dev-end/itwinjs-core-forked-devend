@@ -215,7 +215,10 @@ vec4 decodePosition(vec3 baseIndex) {
     vec3 qpos = vec3(decodeUInt16(e0.xy), decodeUInt16(e0.zw), decodeUInt16(e1.xy));
     return unquantizePosition(qpos, u_qOrigin, u_qScale);
   }
-
+#if 1
+  vec4 position;
+  position = TEXTURE(u_vertLUT, tc);
+#else
   uvec3 vux = uvec3 (floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5));
   tc.x += g_vert_stepX;
   uvec3 vuy = uvec3 (floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5));
@@ -227,6 +230,7 @@ vec4 decodePosition(vec3 baseIndex) {
   vec4 position;
   position.xyz = uintBitsToFloat(u);
   position.w = 1.0;
+#endif
   return position;
 }
 `;

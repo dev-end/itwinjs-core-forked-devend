@@ -34,6 +34,9 @@ const computeOtherPos = `
     vec3 qpos = vec3(decodeUInt16(enc1.xy), decodeUInt16(enc1.zw), decodeUInt16(enc2.xy));
     g_otherPos = unquantizePosition(qpos, u_qOrigin, u_qScale);
   } else {
+#if 1
+    g_otherPos = TEXTURE(u_vertLUT, tc);
+#else
     uvec3 vux = uvec3 (floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5));
     tc.x += g_vert_stepX;
     uvec3 vuy = uvec3 (floor(TEXTURE(u_vertLUT, tc).xyz * 255.0 + 0.5));
@@ -44,6 +47,7 @@ const computeOtherPos = `
     uvec3 u = (vuw << 24) | (vuz << 16) | (vuy << 8) | vux;
     g_otherPos.xyz = uintBitsToFloat(u);
     g_otherPos.w = 1.0;
+#endif
   }
 `;
 

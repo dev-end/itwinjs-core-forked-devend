@@ -43,7 +43,11 @@ vec4 unquantizeVertexPosition(vec3 encodedIndex, vec3 origin, vec3 scale) {
     g_vertexData1zw = enc2.zw; // for color index
     return unquantizePosition(qpos, origin, scale);
   }
-
+#if 1
+  vec4 position;
+  vec2 tc = g_vertexBaseCoords;
+  position = TEXTURE(u_vertLUT, tc);
+#else
   vec4 t;
   vec2 tc = g_vertexBaseCoords;
   t = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
@@ -65,6 +69,7 @@ vec4 unquantizeVertexPosition(vec3 encodedIndex, vec3 origin, vec3 scale) {
   vec4 position;
   position.xyz = uintBitsToFloat(u);
   position.w = 1.0;
+#endif
   return position;
 }
 `;
@@ -319,7 +324,11 @@ export function addFeatureAndMaterialLookup(vert: VertexShaderBuilder): void {
     if (g_usesQuantizedPosition) {
       vec2 tc = g_vertexBaseCoords;
       tc.x += g_vert_stepX * 2.0;
+#if 1
+      g_featureAndMaterialIndex = TEXTURE(u_vertLUT, tc);
+#else
       g_featureAndMaterialIndex = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+#endif
     }
   `;
 
