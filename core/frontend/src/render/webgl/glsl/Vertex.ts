@@ -324,11 +324,7 @@ export function addFeatureAndMaterialLookup(vert: VertexShaderBuilder): void {
     if (g_usesQuantizedPosition) {
       vec2 tc = g_vertexBaseCoords;
       tc.x += g_vert_stepX * 2.0;
-#if 1
-      g_featureAndMaterialIndex = TEXTURE(u_vertLUT, tc);
-#else
       g_featureAndMaterialIndex = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
-#endif
     }
   `;
 
