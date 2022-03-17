@@ -48,19 +48,19 @@ vec4 unquantizeVertexPosition(vec3 encodedIndex, vec3 origin, vec3 scale) {
   vec2 tc = g_vertexBaseCoords;
   t = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
   uvec3 vux = uvec3 (t.xyz);
-  g_tempFeatureAndMatIndex.x = t.w;
+  g_featureAndMaterialIndex.x = t.w;
   tc.x += g_vert_stepX;
   t = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
   uvec3 vuy = uvec3 (t.xyz);
-  g_tempFeatureAndMatIndex.y = t.w;
+  g_featureAndMaterialIndex.y = t.w;
   tc.x += g_vert_stepX;
   t = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
   uvec3 vuz = uvec3 (t.xyz);
-  g_tempFeatureAndMatIndex.z = t.w;
+  g_featureAndMaterialIndex.z = t.w;
   tc.x += g_vert_stepX;
   t = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
   uvec3 vuw = uvec3 (t.xyz);
-  g_tempFeatureAndMatIndex.w = t.w;
+  g_featureAndMaterialIndex.w = t.w;
   uvec3 u = (vuw << 24) | (vuz << 16) | (vuy << 8) | vux;
   vec4 position;
   position.xyz = uintBitsToFloat(u);
@@ -218,7 +218,7 @@ function addPositionFromLUT(vert: VertexShaderBuilder) {
   // const maxRgbaPerVertex = vert.maxRgbaPerVertex.toString();
   // vert.addGlobal(`g_vertLutData[${maxRgbaPerVertex}]`, VariableType.Vec4);
   vert.addGlobal("g_usesQuantizedPosition", VariableType.Boolean);
-  vert.addGlobal("g_tempFeatureAndMatIndex", VariableType.Vec4);
+  vert.addGlobal("g_featureAndMaterialIndex", VariableType.Vec4);
 
   // Read the vertex data from the vertex table up front. If using WebGL 2, only read the number of RGBA values we actually need for this vertex table.
   vert.addInitializer(`
@@ -312,16 +312,14 @@ export function replaceLineCode(vert: VertexShaderBuilder, func: string): void {
 
 /** @internal */
 export function addFeatureAndMaterialLookup(vert: VertexShaderBuilder): void {
-  if (undefined !== vert.find("g_featureAndMaterialIndex"))
-    return;
+  // if (undefined !== vert.find("g_featureAndMaterialIndex"))
+  // return;
 
   const computeFeatureAndMaterialIndex = `
     if (g_usesQuantizedPosition) {
       vec2 tc = g_vertexBaseCoords;
       tc.x += g_vert_stepX * 2.0;
       g_featureAndMaterialIndex = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
-    } else {
-      g_featureAndMaterialIndex = g_tempFeatureAndMatIndex;
     }
   `;
 
