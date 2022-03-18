@@ -31,46 +31,35 @@ export const unquantizeVertexPosition = `
 vec4 unquantizeVertexPosition(vec3 pos, vec3 origin, vec3 scale) { return unquantizePosition(pos, origin, scale); }
 `;
 
-// Need to read 2 rgba values to obtain 6 16-bit integers for position
+// Need to read 2 rgba values to obtain 6 16-bit integers for unquantize position
 const unquantizeVertexPositionFromLUT = `
 vec4 unquantizeVertexPosition(vec3 encodedIndex, vec3 origin, vec3 scale) {
+  vec2 tc = g_vertexBaseCoords;
+  vec4 enc0 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+  tc.x += g_vert_stepX;
+  vec4 enc1 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+  tc.x += g_vert_stepX;
+  vec4 enc2 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5); // read feature and material here as well
+
   if (g_usesQuantizedPosition) {
-    vec2 tc = g_vertexBaseCoords;
-    vec4 enc1 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
-    tc.x += g_vert_stepX;
-    vec4 enc2 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
-    vec3 qpos = vec3(decodeUInt16(enc1.xy), decodeUInt16(enc1.zw), decodeUInt16(enc2.xy));
-    g_vertexData1zw = enc2.zw; // for color index
+    vec3 qpos = vec3(decodeUInt16(enc0.xy), decodeUInt16(enc0.zw), decodeUInt16(enc1.xy));
+    g_vertexData1zw = enc1.zw; // for color index
+    g_featureAndMaterialIndex = enc2;
     return unquantizePosition(qpos, origin, scale);
+  } else {
+    uvec3 vux = uvec3(enc0.xyz);
+    g_featureAndMaterialIndex.x = enc0.w;
+    uvec3 vuy = uvec3(enc1.xyz);
+    g_featureAndMaterialIndex.y = enc1.w;
+    uvec3 vuz = uvec3(enc2.xyz);
+    g_featureAndMaterialIndex.z = enc2.w;
+    tc.x += g_vert_stepX;
+    vec4 enc3 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
+    uvec3 vuw = uvec3(enc3.xyz);
+    g_featureAndMaterialIndex.w = enc3.w;
+    uvec3 u = (vuw << 24) | (vuz << 16) | (vuy << 8) | vux;
+    return vec4(uintBitsToFloat(u), 1.0);
   }
-#if 1
-  vec4 position;
-  vec2 tc = g_vertexBaseCoords;
-  position = TEXTURE(u_vertLUT, tc);
-#else
-  vec4 t;
-  vec2 tc = g_vertexBaseCoords;
-  t = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
-  uvec3 vux = uvec3 (t.xyz);
-  g_featureAndMaterialIndex.x = t.w;
-  tc.x += g_vert_stepX;
-  t = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
-  uvec3 vuy = uvec3 (t.xyz);
-  g_featureAndMaterialIndex.y = t.w;
-  tc.x += g_vert_stepX;
-  t = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
-  uvec3 vuz = uvec3 (t.xyz);
-  g_featureAndMaterialIndex.z = t.w;
-  tc.x += g_vert_stepX;
-  t = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
-  uvec3 vuw = uvec3 (t.xyz);
-  g_featureAndMaterialIndex.w = t.w;
-  uvec3 u = (vuw << 24) | (vuz << 16) | (vuy << 8) | vux;
-  vec4 position;
-  position.xyz = uintBitsToFloat(u);
-  position.w = 1.0;
-#endif
-  return position;
 }
 `;
 
@@ -321,11 +310,6 @@ export function addFeatureAndMaterialLookup(vert: VertexShaderBuilder): void {
   // return;
 
   const computeFeatureAndMaterialIndex = `
-    if (g_usesQuantizedPosition) {
-      vec2 tc = g_vertexBaseCoords;
-      tc.x += g_vert_stepX * 2.0;
-      g_featureAndMaterialIndex = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
-    }
   `;
 
   vert.addGlobal("g_featureAndMaterialIndex", VariableType.Vec4);
