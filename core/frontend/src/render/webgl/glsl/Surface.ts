@@ -375,6 +375,8 @@ const applyBackgroundColor = `
 
 const computeTexCoord = `
   vec4 rgba = g_usesQuantizedPosition ? g_vertLutData3 : g_vertLutData4;
+  vec2 qcoords = vec2(decodeUInt16(rgba.xy), decodeUInt16(rgba.zw));
+  return chooseVec2WithBitFlag(vec2(0.0), unquantize2d(qcoords, u_qTexCoordParams), surfaceFlags, kSurfaceBit_HasTexture);
 `;
 const computeAnimatedTexCoord = `
   if (u_animScalarQParams.x >= 0.0)
