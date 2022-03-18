@@ -40,26 +40,10 @@ vec4 unquantizeVertexPosition(vec3 encodedIndex, vec3 origin, vec3 scale) {
   vec4 enc1 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
   tc.x += g_vert_stepX;
   vec4 enc2 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5); // read feature and material here as well
-
-  if (g_usesQuantizedPosition) {
-    vec3 qpos = vec3(decodeUInt16(enc0.xy), decodeUInt16(enc0.zw), decodeUInt16(enc1.xy));
-    g_vertexData1zw = enc1.zw; // for color index
-    g_featureAndMaterialIndex = enc2;
-    return unquantizePosition(qpos, origin, scale);
-  } else {
-    uvec3 vux = uvec3(enc0.xyz);
-    g_featureAndMaterialIndex.x = enc0.w;
-    uvec3 vuy = uvec3(enc1.xyz);
-    g_featureAndMaterialIndex.y = enc1.w;
-    uvec3 vuz = uvec3(enc2.xyz);
-    g_featureAndMaterialIndex.z = enc2.w;
-    tc.x += g_vert_stepX;
-    vec4 enc3 = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
-    uvec3 vuw = uvec3(enc3.xyz);
-    g_featureAndMaterialIndex.w = enc3.w;
-    uvec3 u = (vuw << 24) | (vuz << 16) | (vuy << 8) | vux;
-    return vec4(uintBitsToFloat(u), 1.0);
-  }
+  vec3 qpos = vec3(decodeUInt16(enc0.xy), decodeUInt16(enc0.zw), decodeUInt16(enc1.xy));
+  g_vertexData1zw = enc1.zw; // for color index
+  g_featureAndMaterialIndex = enc2;
+  return unquantizePosition(qpos, origin, scale);
 }
 `;
 
@@ -211,12 +195,12 @@ function addPositionFromLUT(vert: VertexShaderBuilder) {
   // assert(undefined !== vert.maxRgbaPerVertex);
   // const maxRgbaPerVertex = vert.maxRgbaPerVertex.toString();
   // vert.addGlobal(`g_vertLutData[${maxRgbaPerVertex}]`, VariableType.Vec4);
-  vert.addGlobal("g_usesQuantizedPosition", VariableType.Boolean);
+  // vert.addGlobal("g_usesQuantizedPosition", VariableType.Boolean);
   vert.addGlobal("g_featureAndMaterialIndex", VariableType.Vec4);
 
   // Read the vertex data from the vertex table up front. If using WebGL 2, only read the number of RGBA values we actually need for this vertex table.
   vert.addInitializer(`
-    g_usesQuantizedPosition = u_qScale.x >= 0.0;
+    // g_usesQuantizedPosition = u_qScale.x >= 0.0;
   `);
 }
 

@@ -359,14 +359,9 @@ const computeNormal = `
 
   vec2 normal;
   vec2 tc = g_vertexBaseCoords;
-  tc.x += g_vert_stepX * (u_surfaceFlags[kSurfaceBitIndex_HasColorAndNormal] ?
-                          (g_usesQuantizedPosition ? 3.0 : 4.0) : (g_usesQuantizedPosition ? 1.0 : 5.0));
+  tc.x += g_vert_stepX * (u_surfaceFlags[kSurfaceBitIndex_HasColorAndNormal] ? 3.0 : 1.0);
   vec4 enc = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
-  if (u_surfaceFlags[kSurfaceBitIndex_HasColorAndNormal])
-    normal = g_usesQuantizedPosition ? enc.xy : enc.zw;
-  else
-    normal = g_usesQuantizedPosition ? enc.zw : enc.xy;
-
+  normal = (u_surfaceFlags[kSurfaceBitIndex_HasColorAndNormal]) ? enc.xy : enc.zw;
   return normalize(MAT_NORM * octDecodeNormal(normal));
 `;
 
@@ -381,7 +376,7 @@ const applyBackgroundColor = `
 
 const computeTexCoord = `
   vec2 tc = g_vertexBaseCoords;
-  tc.x += g_vert_stepX * (g_usesQuantizedPosition ? 3.0 : 4.0);
+  tc.x += g_vert_stepX * 3.0;
   vec4 rgba = floor(TEXTURE(u_vertLUT, tc) * 255.0 + 0.5);
   vec2 qcoords = vec2(decodeUInt16(rgba.xy), decodeUInt16(rgba.zw));
   return chooseVec2WithBitFlag(vec2(0.0), unquantize2d(qcoords, u_qTexCoordParams), surfaceFlags, kSurfaceBit_HasTexture);
