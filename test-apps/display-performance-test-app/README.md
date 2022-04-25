@@ -44,6 +44,14 @@ Performance tests on iOS have more restrictions than performance tests run on ot
   * If defined, sets a Bing Maps key within the `MapLayerOptions` as a "key" type.
 * IMJS_CESIUM_ION_KEY
   * If defined, the API key supplying access to Cesium ION assets.
+* `@itwin/oidc-signin-tool`
+  * IMJS_OIDC_BROWSER_TEST_CLIENT_ID
+  * IMJS_OIDC_BROWSER_TEST_REDIRECT_URI
+  * IMJS_OIDC_BROWSER_TEST_SCOPES
+  * IMJS_AUTH_AUTHORITY
+  * IMJS_URL_PREFIX
+  * IMJS_OIDC_USER_EMAIL
+  * IMJS_OIDC_USER_PASSWORD
 
 ## Configuration json file
 
