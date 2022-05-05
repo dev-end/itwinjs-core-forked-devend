@@ -1947,7 +1947,10 @@ describe("IModelTransformer", () => {
   it.only("flat color change test", async () => {
     const sourceDbPath = "/home/mike/shell.bim";
     const sourceDb = SnapshotDb.openFile(sourceDbPath);
-    const targetDb = SnapshotDb.createFrom(sourceDb, "/tmp/shell-color-test.bim");
+    const targetDbPath =  "/tmp/shell-color-test.bim";
+    if (IModelJsFs.existsSync(targetDbPath))
+      IModelJsFs.unlinkSync(targetDbPath);
+    const targetDb = SnapshotDb.createFrom(sourceDb, targetDbPath);
 
     function editColor(sourceElement: Element, targetElementProps: Element | ElementProps) {
       if (sourceElement instanceof GeometricElement || sourceElement instanceof GeometryPart) {
@@ -1967,15 +1970,18 @@ describe("IModelTransformer", () => {
       }
     }
 
-    for await (const [id] of targetDb.query(`
+    targetDb.withPreparedStatement(`
       SELECT ECInstanceId FROM bis.GeometricElement3d
       UNION ALL
       SELECT ECInstanceId FROM bis.GeometryPart
-    `)) {
-      const element = targetDb.elements.getElement({ id, wantGeometry: true });
-      editColor(element, element);
-      element.update();
-    }
+    `, (stmt) => {
+      while (stmt.step() === DbResult.BE_SQLITE_ROW) {
+        const id = stmt.getValue(0).getId();
+        const element = targetDb.elements.getElement({ id, wantGeometry: true });
+        editColor(element, element);
+        element.update();
+      }
+    });
 
     // await assertIdentityTransformation(sourceDb, targetDb, undefined, { compareElemGeom: true });
 
