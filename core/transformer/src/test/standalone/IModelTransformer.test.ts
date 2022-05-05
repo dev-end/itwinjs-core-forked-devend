@@ -1878,7 +1878,7 @@ describe("IModelTransformer", () => {
     targetDb.close();
   });
 
-  it.only("Deven color change test", async () => {
+  it("Deven color change test", async () => {
     const sourceDbPath = "/home/mike/Downloads/small.bim";
     const sourceDb = SnapshotDb.openFile(sourceDbPath);
 
@@ -1939,6 +1939,45 @@ describe("IModelTransformer", () => {
     targetDb.saveChanges();
 
     await assertIdentityTransformation(sourceDb, targetDb, transformer, { compareElemGeom: true });
+
+    sourceDb.close();
+    targetDb.close();
+  });
+
+  it.only("flat color change test", async () => {
+    const sourceDbPath = "/home/mike/shell.bim";
+    const sourceDb = SnapshotDb.openFile(sourceDbPath);
+    const targetDb = SnapshotDb.createFrom(sourceDb, "/tmp/shell-color-test.bim");
+
+    function editColor(sourceElement: Element, targetElementProps: Element | ElementProps) {
+      if (sourceElement instanceof GeometricElement || sourceElement instanceof GeometryPart) {
+        const targetGeomElementProps = targetElementProps as GeometricElement3dProps | GeometryPartProps;
+        const myColor = 0x00ffff;
+        const hasAppearance = targetGeomElementProps.geom?.some((g) => "appearance" in g);
+        if (targetGeomElementProps.geom)
+          targetGeomElementProps.geom =
+            hasAppearance
+              ? targetGeomElementProps.geom.map((e) =>
+                "appearance" in e
+                  ? { appearance: { ...e.appearance, color: myColor } }
+                  : e
+              )
+              // keep the header
+              : [targetGeomElementProps.geom[0], {appearance: { color: myColor }}, ...targetGeomElementProps.geom.slice(1)];
+      }
+    }
+
+    for await (const [id] of targetDb.query(`
+      SELECT ECInstanceId FROM bis.GeometricElement3d
+      UNION ALL
+      SELECT ECInstanceId FROM bis.GeometryPart
+    `)) {
+      const element = targetDb.elements.getElement({ id, wantGeometry: true });
+      editColor(element, element);
+      element.update();
+    }
+
+    // await assertIdentityTransformation(sourceDb, targetDb, undefined, { compareElemGeom: true });
 
     sourceDb.close();
     targetDb.close();
